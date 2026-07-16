@@ -266,6 +266,14 @@ vim.cmd([[
 vim.g.mkdp_browserfunc = "MkdpNoopBrowser"
 vim.keymap.set('n', '<leader>mp', '<cmd>MarkdownPreviewToggle<cr>', { desc = 'Markdown preview' })
 
+-- CodeCompanion: ask about code without leaving Neovim, backed by Ollama. The
+-- built-in ollama adapter talks to $OLLAMA_HOST (else http://localhost:11434),
+-- so make sure Ollama is running/reachable there. <leader>cc toggles a chat
+-- window to ask anything; in visual mode <leader>ca sends the highlighted code
+-- into a chat so you can ask about it. :CodeCompanionActions lists more prompts.
+vim.keymap.set({ 'n', 'v' }, '<leader>cc', '<cmd>CodeCompanionChat Toggle<cr>', { desc = 'CodeCompanion chat (toggle)' })
+vim.keymap.set('v', '<leader>ca', '<cmd>CodeCompanionChat Add<cr>', { desc = 'CodeCompanion: add selection to chat' })
+
 -- custom :Practice command
 vim.api.nvim_create_user_command(
   'Practice',

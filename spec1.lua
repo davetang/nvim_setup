@@ -113,6 +113,46 @@ return {
   -- https://github.com/tpope/vim-fugitive
   {
     "tpope/vim-fugitive"
+  },
+
+  -- https://github.com/olimorris/codecompanion.nvim
+  -- Ask about code from inside Neovim, backed by a local Ollama server. The
+  -- built-in `ollama` adapter reads $OLLAMA_HOST (falling back to
+  -- http://localhost:11434) and offers whatever models that server has, so the
+  -- only thing to configure is pointing the strategies at it - no URL, key, or
+  -- model to hard-code. Loaded on demand via its commands; the keymaps
+  -- (<leader>cc / <leader>ca) live in init.lua. See :Cheatsheet.
+  {
+    "olimorris/codecompanion.nvim",
+    cmd = { "CodeCompanion", "CodeCompanionChat", "CodeCompanionActions" },
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-treesitter/nvim-treesitter",
+    },
+    opts = {
+      strategies = {
+        chat = { adapter = "ollama" },
+        inline = { adapter = "ollama" },
+      },
+      -- Pin the default model. Note $OLLAMA_MODEL is NOT a standard Ollama
+      -- variable (Ollama defines OLLAMA_HOST and OLLAMA_MODELS - the latter is
+      -- the model *storage directory*, not a selector); it's just a name this
+      -- config reads. The model must already be pulled on the server; switch it
+      -- live in the chat with `ga`.
+      adapters = {
+        http = {
+          ollama = function()
+            return require("codecompanion.adapters").extend("ollama", {
+              schema = {
+                model = {
+                  default = os.getenv("OLLAMA_MODEL") or "qwen2.5-coder:7b",
+                },
+              },
+            })
+          end,
+        },
+      },
+    },
   }
 
 }

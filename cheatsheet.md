@@ -98,6 +98,33 @@ Inside the **`:G` status window**:
 
 Preview runs on a fixed port (8090) for headless/SSH use — forward it with `ssh -L 8090:localhost:8090`.
 
+## Ask about code (CodeCompanion + Ollama)
+
+Chat with a local **Ollama** model without leaving Neovim. The adapter connects
+to **`$OLLAMA_HOST`** (falling back to `http://localhost:11434`), so export that
+to point at your Ollama server before launching nvim. The default model is
+**`qwen2.5-coder:7b`** (override with **`$OLLAMA_MODEL`**); it must already be
+pulled on the server, and you can switch models live in the chat with `ga`.
+
+| Key / Command | Action |
+|-----|--------|
+| `<leader>cc` | Toggle the chat window — ask anything |
+| `<leader>ca` (visual) | Send the highlighted code into a chat, then ask about it |
+| `:CodeCompanionChat` | Open a chat buffer directly |
+| `:CodeCompanionActions` | Pick from the built-in prompt library |
+| `:CodeCompanion <prompt>` | Inline: act on the current buffer / selection in place |
+
+Inside the chat buffer:
+
+| Key | Action |
+|-----|--------|
+| `?` | **Show all chat keymaps** |
+| `<CR>` / `<C-s>` | Send the message |
+| `gr` | Regenerate the last response |
+| `ga` | Change the adapter / model |
+| `q` | Stop the current request |
+| `<C-c>` | Close the chat |
+
 ## Editing helpers
 
 | Command | Action |
