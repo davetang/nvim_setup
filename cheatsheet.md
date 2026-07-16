@@ -110,9 +110,10 @@ pulled on the server, and you can switch models live in the chat with `ga`.
 |-----|--------|
 | `<leader>cc` | Toggle the chat window — ask anything |
 | `<leader>ca` (visual) | Send the highlighted code into a chat, then ask about it |
+| `<leader>ci` | Inline assistant — type an instruction to write/edit code in place (visual = on the selection) |
 | `:CodeCompanionChat` | Open a chat buffer directly |
 | `:CodeCompanionActions` | Pick from the built-in prompt library |
-| `:CodeCompanion <prompt>` | Inline: act on the current buffer / selection in place |
+| `:CodeCompanion <prompt>` | Inline assistant as a command (what `<leader>ci` runs) |
 
 Inside the chat buffer:
 

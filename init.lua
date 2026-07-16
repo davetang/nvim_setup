@@ -273,6 +273,11 @@ vim.keymap.set('n', '<leader>mp', '<cmd>MarkdownPreviewToggle<cr>', { desc = 'Ma
 -- into a chat so you can ask about it. :CodeCompanionActions lists more prompts.
 vim.keymap.set({ 'n', 'v' }, '<leader>cc', '<cmd>CodeCompanionChat Toggle<cr>', { desc = 'CodeCompanion chat (toggle)' })
 vim.keymap.set('v', '<leader>ca', '<cmd>CodeCompanionChat Add<cr>', { desc = 'CodeCompanion: add selection to chat' })
+-- Inline assistant: write/edit code in place (you accept or reject its diff).
+-- Leaves ':CodeCompanion ' on the command line for you to type the instruction,
+-- then press <CR>. No trailing <cr> here on purpose. In visual mode the '<,'>
+-- range is inserted automatically, so it targets the selection.
+vim.keymap.set({ 'n', 'v' }, '<leader>ci', ':CodeCompanion ', { desc = 'CodeCompanion inline prompt' })
 
 -- custom :Practice command
 vim.api.nvim_create_user_command(
