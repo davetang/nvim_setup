@@ -154,12 +154,15 @@ Notable things the config (`init.lua`) sets up — see the full keymap list with
 - **Ask about code (Ollama).** `<leader>cc` opens a chat with a local LLM via
   [codecompanion.nvim](https://github.com/olimorris/codecompanion.nvim); in
   visual mode `<leader>ca` sends the highlighted code into the chat so you can
-  ask about it. It talks to an **Ollama** server at `$OLLAMA_HOST` (default
-  `http://localhost:11434`), using the model in **`$OLLAMA_MODEL`** (default
-  `qwen2.5-coder:7b`), which must be pulled on the server; switch models live in
-  the chat with `ga`. Ollama itself is **not** installed by this bundle — set
-  `OLLAMA_HOST` and have it running/reachable. See `:Cheatsheet` for the in-chat
-  keys.
+  ask about it, and `<leader>ci` runs the inline assistant to write/edit code in
+  place (on the selection in visual mode). It talks to an **Ollama** server at
+  `$OLLAMA_HOST` (default `http://localhost:11434`), using the model in
+  **`$OLLAMA_MODEL`** (default `qwen2.5-coder:7b`), which must be pulled on the
+  server; switch models live in the chat with `ga`. Ollama itself is **not**
+  installed by this bundle — have it running/reachable, then set `OLLAMA_HOST` as
+  a **full URL** (`http://host:port`, *with* the scheme — a bare `host:port`
+  won't work) and `export` it from your shell rc so nvim inherits it at launch
+  (restart nvim after changing it). See `:Cheatsheet` for the in-chat keys.
 
 ## Testing in Docker
 
