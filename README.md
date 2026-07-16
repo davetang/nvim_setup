@@ -13,14 +13,23 @@ export PATH="$HOME/bin:$PATH"     # add to your shell rc so it persists
 nvim
 ```
 
+**On an older Linux** (glibc < 2.39, e.g. many HPC/cluster nodes) the prebuilt
+tree-sitter won't run — install it from conda-forge instead (needs an active
+Miniforge/conda env), otherwise identical:
+
+```sh
+make setup && TREE_SITTER_METHOD=conda make install
+```
+
 - `make setup` — symlinks the config (`init.lua`, `lazy.lua`, `spec1.lua`,
   `practice.md`, `cheatsheet.md`) into `~/.config/nvim`.
 - `make install` — downloads Neovim, Node.js, tree-sitter, the linters/
   formatters (ShellCheck, shfmt, Ruff) and the language servers into `$HOME`.
 
 The installers only *warn* about `PATH`; adding `~/bin` to it is the one manual
-step. On first launch, `nvim` will install its plugins via lazy.nvim (needs
-network, a C compiler for Treesitter parsers, and the Node just installed).
+step. On first launch, `nvim` installs its plugins via lazy.nvim (needs network
+and a C compiler for the Treesitter parsers) — if highlighting errors, run
+`:TSUpdate` and restart once the parsers finish building.
 
 ## Requirements
 
@@ -32,8 +41,18 @@ network, a C compiler for Treesitter parsers, and the Node just installed).
 - Node.js and the tree-sitter CLI are installed by the bundle, so they are
   *not* prerequisites
 - The prebuilt Neovim and tree-sitter binaries are dynamically linked;
-  tree-sitter needs **glibc 2.39+** (Ubuntu 24.04 / recent Linux). On older
-  systems install tree-sitter another way, e.g. `cargo install tree-sitter-cli`.
+  tree-sitter needs **glibc 2.39+** (Ubuntu 24.04 / recent Linux). On an older
+  system, pick a different tree-sitter method with `TREE_SITTER_METHOD` — set it
+  for the *whole* install (it propagates to the `tree-sitter` step) and use it
+  **every time**, since plain `make install` re-downloads the prebuilt binary:
+  - **conda** (easiest, needs Miniforge/conda): `TREE_SITTER_METHOD=conda make
+    install` installs conda-forge's `tree-sitter-cli` (built for old glibc) and
+    links it into `~/bin`.
+  - **cargo** (no conda): `make cargo` once, then `TREE_SITTER_METHOD=cargo make
+    install`. Builds from source — needs a C compiler *and* libclang.
+
+  To repair an existing install without redoing everything, run just
+  `TREE_SITTER_METHOD=<conda|cargo> make tree-sitter`.
 
 ## What gets installed, and where
 
@@ -59,6 +78,7 @@ network, a C compiler for Treesitter parsers, and the Node just installed).
 | `make nvim` | Install Neovim into `~/bin` |
 | `make node` | Install Node.js into `~/bin` |
 | `make tree-sitter` | Install the tree-sitter CLI into `~/bin` |
+| `make cargo` | Install Rust/cargo (only for `TREE_SITTER_METHOD=cargo`) |
 | `make shellcheck` / `make shfmt` | ShellCheck / shfmt for Bash (used by bashls) |
 | `make ruff` | Ruff for Python (lint + format, runs as an LSP) |
 | `make lsp` | All language servers (`bashls` + `pyright` + `makels`) |
@@ -80,6 +100,7 @@ Set as environment variables, e.g. `NVIM_VERSION=0.11.3 make nvim`:
 | `NVIM_VERSION`, `NODE_VERSION`, `TREE_SITTER_VERSION`, `SHELLCHECK_VERSION`, `SHFMT_VERSION`, `RUFF_VERSION` | Pin a specific version instead of the default |
 | `FORCE=1` | Reinstall even if the versioned directory already exists |
 | `DRY_RUN=1` | Print what would happen without downloading (the binary installers) |
+| `TREE_SITTER_METHOD` | tree-sitter install method: `prebuilt` (default), `conda`, or `cargo` (for old glibc) |
 | `BIN_DIR` / `LIB_DIR` | Override the install prefixes (default `~/bin` / `~/lib`) |
 
 ## Notes
@@ -95,7 +116,10 @@ Set as environment variables, e.g. `NVIM_VERSION=0.11.3 make nvim`:
   `~/.config/nvim` symlinks point, and any legacy files, so you can spot an old
   install shadowing the new one. `make setup` then relinks the config safely
   (replacing old symlinks, backing up real files); just make sure `~/bin` is
-  **first** on `PATH` so the new tools win over the old ones.
+  **first** on `PATH` so the new tools win over the old ones. On the first nvim
+  launch after migrating, run **`:Lazy sync`** and restart so plugins update to
+  the new specs — in particular nvim-treesitter switches from `master` to its
+  `main` branch (needed by Neovim 0.12+).
 
 ## Editor behaviour
 

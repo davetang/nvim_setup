@@ -15,6 +15,7 @@
 #   make nvim         Install Neovim into ~/bin/nvim-<version>
 #   make node         Install Node.js into ~/bin/node-<version>
 #   make tree-sitter  Install the tree-sitter CLI into ~/bin
+#   make cargo        Install Rust/cargo (for TREE_SITTER_METHOD=cargo on old glibc)
 #   make shellcheck   Install ShellCheck (Bash linting, used by bashls)
 #   make shfmt        Install shfmt (Bash formatting, used by bashls)
 #   make ruff         Install Ruff (Python lint + format, run as an LSP)
@@ -38,7 +39,7 @@ ROOT := $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 # keep the build sequential even if invoked with -j.
 .NOTPARALLEL:
 
-.PHONY: help setup install nvim node tree-sitter shellcheck shfmt ruff lsp bashls pyright makels check
+.PHONY: help setup install nvim node tree-sitter cargo shellcheck shfmt ruff lsp bashls pyright makels check
 
 help:
 	@echo 'Usage: make <target>'
@@ -49,6 +50,7 @@ help:
 	@echo '  nvim         Install Neovim into ~/bin'
 	@echo '  node         Install Node.js into ~/bin'
 	@echo '  tree-sitter  Install the tree-sitter CLI into ~/bin'
+	@echo '  cargo        Install Rust/cargo (for TREE_SITTER_METHOD=cargo)'
 	@echo '  shellcheck   Install ShellCheck (Bash linting, used by bashls)'
 	@echo '  shfmt        Install shfmt (Bash formatting, used by bashls)'
 	@echo '  ruff         Install Ruff (Python lint + format, run as an LSP)'
@@ -74,9 +76,16 @@ nvim:
 node:
 	$(ROOT)node.sh
 
-# tree-sitter CLI - nvim-treesitter's main branch builds parsers with it.
+# tree-sitter CLI - nvim-treesitter's main branch builds parsers with it. Set
+# TREE_SITTER_METHOD=cargo to build from source on machines with an old glibc.
 tree-sitter:
 	$(ROOT)tree_sitter.sh
+
+# Rust/cargo - only needed to build tree-sitter from source
+# (TREE_SITTER_METHOD=cargo) where the prebuilt binary's glibc is too new.
+# Not part of `make install`.
+cargo:
+	$(ROOT)cargo.sh
 
 # ShellCheck - Bash linter that bash-language-server picks up automatically.
 shellcheck:

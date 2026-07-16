@@ -220,10 +220,16 @@ vim.keymap.set('n', '<leader>f', function() vim.lsp.buf.format({ async = true })
 -- `.configs.setup{}` / ensure_installed / highlight API no longer applies; on
 -- main you install parsers imperatively and start highlighting per buffer.
 -- https://github.com/nvim-treesitter/nvim-treesitter/blob/main/README.md
-require('nvim-treesitter').install({
-  "r", "rnoweb", "python", "bash", "groovy", "make", "perl", "sql", "yaml",
-  "c", "lua", "vim", "vimdoc", "query", "markdown", "markdown_inline",
-})
+-- Guard: install() only exists on the main branch. If nvim-treesitter is
+-- missing or still on master (e.g. mid-migration from an old setup), skip it
+-- instead of erroring - run `:Lazy sync` to switch to main, then restart.
+local ok_ts, ts = pcall(require, 'nvim-treesitter')
+if ok_ts and type(ts.install) == 'function' then
+  ts.install({
+    "r", "rnoweb", "python", "bash", "groovy", "make", "perl", "sql", "yaml",
+    "c", "lua", "vim", "vimdoc", "query", "markdown", "markdown_inline",
+  })
+end
 
 -- Start Treesitter highlighting for any buffer whose filetype has an installed
 -- parser. vim.treesitter.start() resolves the language from the filetype, and
