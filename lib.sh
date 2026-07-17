@@ -65,6 +65,91 @@ warn_if_not_on_path() {
    esac
 }
 
+# --- prebuilt-tool installer ------------------------------------------------
+
+# Print an "Installed:" line from <exe> --version (first line); best-effort, so
+# it never fails a run. Falls back to the path if --version prints nothing.
+report_installed() {
+   local exe="$1" line
+   line="$("${exe}" --version 2>/dev/null | head -n1 || true)"
+   msg "Installed: ${line:-${exe}}"
+}
+
+# Stage callback: extract a .tar.gz whose single top-level directory should be
+# stripped, so its contents land directly in the install dir. Shared by the
+# installers whose release is a tarball wrapping one directory.
+stage_tarball_strip() {
+   require tar
+   tar -xzf "$1" -C "$2" --strip-components=1
+}
+
+# Download a pinned release into a versioned dir under ~/bin and symlink the
+# executables it provides into ~/bin - the shared skeleton behind nvim.sh,
+# node.sh, shellcheck.sh, shfmt.sh and ruff.sh, which differ only in the asset
+# name, how the download is unpacked, and what they report.
+#
+#   install_versioned_tool <label> <version> <url> <install_dir> \
+#                          <stage_fn> <verify_fn> <linkspec>...
+#     label        human name for the log banner (e.g. "Neovim")
+#     version      version being installed
+#     url          download URL; the asset name is its basename
+#     install_dir  versioned dir to populate (e.g. ~/bin/nvim-0.12.4)
+#     stage_fn     callback: stage_fn <downloaded-file> <install_dir> - unpacks
+#                  the download into install_dir (e.g. stage_tarball_strip)
+#     verify_fn    callback: verify_fn <install_dir> prints an "Installed:" line;
+#                  pass "" to report the first linked binary's --version
+#     linkspec...  "<name>=<relpath>": symlink ~/bin/<name> -> install_dir/relpath
+#
+# Honours FORCE (reinstall when the versioned dir already exists) and DRY_RUN
+# (print the plan, download nothing).
+install_versioned_tool() {
+   local label="$1" version="$2" url="$3" install_dir="$4" stage_fn="$5" verify_fn="$6"
+   shift 6
+   local -a linkspecs=("$@")
+   local bin_dir="${BIN_DIR:-${HOME}/bin}"
+   local asset="${url##*/}"
+
+   msg "${label} : v${version}"
+   msg "Platform : $(uname -s) $(uname -m) -> ${asset}"
+   msg "Source   : ${url}"
+   msg "Target   : ${install_dir}"
+
+   if [[ -n "${DRY_RUN:-}" ]]; then
+      msg "DRY_RUN set; nothing was downloaded or installed."
+      return 0
+   fi
+
+   mkdir -p "${bin_dir}"
+
+   if [[ -d "${install_dir}" && -z "${FORCE:-}" ]]; then
+      msg "${install_dir} already exists; skipping download (set FORCE=1 to reinstall)."
+   else
+      # `tmp` is the global the EXIT trap cleans up (see the scratch-dir section).
+      tmp="$(mktemp -d)"
+      msg "Downloading ${asset} ..."
+      download "${url}" "${tmp}/${asset}"
+      rm -rf "${install_dir}"
+      mkdir -p "${install_dir}"
+      "${stage_fn}" "${tmp}/${asset}" "${install_dir}"
+   fi
+
+   local spec name rel
+   for spec in "${linkspecs[@]}"; do
+      name="${spec%%=*}"
+      rel="${spec#*=}"
+      ln -sf "${install_dir}/${rel}" "${bin_dir}/${name}"
+      msg "Linked ${bin_dir}/${name} -> ${install_dir}/${rel}"
+   done
+   warn_if_not_on_path "${bin_dir}"
+
+   if [[ -n "${verify_fn}" ]]; then
+      "${verify_fn}" "${install_dir}"
+   else
+      report_installed "${install_dir}/${linkspecs[0]#*=}"
+   fi
+   msg "Done."
+}
+
 # --- npm-based language servers ---------------------------------------------
 
 # Install an npm package (a language server) into ${LIB_DIR:-~/lib} with no

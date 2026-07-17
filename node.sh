@@ -3,11 +3,11 @@
 # node.sh - install Node.js locally under $HOME (no root required).
 #
 # Node.js provides `npm`, which the Bash and Python language servers install
-# through. Downloads the official binary tarball for the detected operating
-# system and CPU architecture from nodejs.org, installs it to
-# $HOME/bin/node-<version>, and points stable $HOME/bin/{node,npm,npx}
-# symlinks at it. Designed to run unchanged on any of my workstations
-# (Linux/macOS, x86_64/arm64).
+# through. Downloads the official binary tarball for the detected OS/CPU from
+# nodejs.org into $HOME/bin/node-<version> and points stable
+# $HOME/bin/{node,npm,npx} symlinks at it. Runs unchanged on Linux/macOS,
+# x86_64/arm64. The download/install/link mechanics live in
+# install_versioned_tool (lib.sh).
 #
 # Usage:
 #   ./node.sh                        # install the pinned LTS version
@@ -17,109 +17,40 @@
 
 set -euo pipefail
 
-# Shared helpers (msg/die/require/download/cleanup/...), kept beside this script.
+# Shared helpers (install_versioned_tool/msg/die/...), kept beside this script.
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
 
-# --- configuration ----------------------------------------------------------
-
-# Version to install (an LTS release). Override with the NODE_VERSION env var.
 readonly VERSION="${NODE_VERSION:-24.18.0}"
-
-# Where the versioned install lives and where the stable symlinks are created.
 readonly BIN_DIR="${BIN_DIR:-${HOME}/bin}"
-readonly INSTALL_DIR="${BIN_DIR}/node-${VERSION}"
 
-# Commands provided by Node that we expose via ${BIN_DIR}.
-readonly TOOLS=(node npm npx)
-
-# --- helpers ----------------------------------------------------------------
-
-# Map `uname` output to the Node.js release asset name for this machine.
+# Map this machine to the Node.js release asset name.
 detect_asset() {
-   local kernel arch os cpu
-   kernel="$(uname -s)"
-   arch="$(uname -m)"
-
-   case "${kernel}" in
+   local os cpu
+   case "$(uname -s)" in
       Linux)  os="linux" ;;
       Darwin) os="darwin" ;;
-      *)      die "Unsupported operating system: ${kernel}" ;;
+      *)      die "Unsupported operating system: $(uname -s)" ;;
    esac
-
-   case "${arch}" in
+   case "$(uname -m)" in
       x86_64 | amd64)  cpu="x64" ;;
       aarch64 | arm64) cpu="arm64" ;;
-      *)               die "Unsupported architecture: ${arch}" ;;
+      *)               die "Unsupported architecture: $(uname -m)" ;;
    esac
-
    printf 'node-v%s-%s-%s.tar.gz' "${VERSION}" "${os}" "${cpu}"
 }
 
-# Link node/npm/npx from ${BIN_DIR} to the freshly installed version.
-link_current() {
-   local tool
-   for tool in "${TOOLS[@]}"; do
-      ln -sf "${INSTALL_DIR}/bin/${tool}" "${BIN_DIR}/${tool}"
-      msg "Linked ${BIN_DIR}/${tool} -> ${INSTALL_DIR}/bin/${tool}"
-   done
-   warn_if_not_on_path "${BIN_DIR}"
+# Report both node and npm. npm's shebang is `env node`, so put this Node on
+# PATH to run it.
+verify_node() {
+   local install_dir="$1" nv npmv
+   nv="$("${install_dir}/bin/node" --version 2>/dev/null || echo '?')"
+   npmv="$(PATH="${install_dir}/bin:${PATH}" "${install_dir}/bin/npm" --version 2>/dev/null || echo '?')"
+   msg "Installed: node ${nv}, npm ${npmv}"
 }
 
-# --- main -------------------------------------------------------------------
-
-main() {
-   require tar
-
-   local asset base_url tarball_url
-   asset="$(detect_asset)"
-   base_url="https://nodejs.org/dist/v${VERSION}"
-   tarball_url="${base_url}/${asset}"
-
-   msg "Node.js  : v${VERSION}"
-   msg "Platform : $(uname -s) $(uname -m) -> ${asset}"
-   msg "Source   : ${tarball_url}"
-   msg "Target   : ${INSTALL_DIR}"
-
-   if [[ -n "${DRY_RUN:-}" ]]; then
-      msg "DRY_RUN set; nothing was downloaded or installed."
-      return 0
-   fi
-
-   # Already installed? Just refresh the symlinks, unless FORCE is set.
-   if [[ -d "${INSTALL_DIR}" && -z "${FORCE:-}" ]]; then
-      msg "${INSTALL_DIR} already exists; skipping download (set FORCE=1 to reinstall)."
-      link_current
-      return 0
-   fi
-
-   mkdir -p "${BIN_DIR}"
-
-   tmp="$(mktemp -d)"
-
-   msg "Downloading ${asset} ..."
-   download "${tarball_url}" "${tmp}/${asset}"
-
-   # Node's tarball has a single top-level directory (e.g.
-   # node-v24.18.0-linux-x64/); --strip-components=1 drops it so the contents
-   # land directly in INSTALL_DIR as bin/, lib/, include/, share/.
-   msg "Extracting into ${INSTALL_DIR} ..."
-   rm -rf "${INSTALL_DIR}"
-   mkdir -p "${INSTALL_DIR}"
-   tar -xzf "${tmp}/${asset}" -C "${INSTALL_DIR}" --strip-components=1
-
-   link_current
-
-   local node_bin="${INSTALL_DIR}/bin/node"
-   if [[ -x "${node_bin}" ]]; then
-      local node_v npm_v
-      node_v="$("${node_bin}" --version 2>/dev/null || echo '?')"
-      # npm's shebang is `env node`, so put this Node on PATH to run it.
-      npm_v="$(PATH="${INSTALL_DIR}/bin:${PATH}" "${INSTALL_DIR}/bin/npm" --version 2>/dev/null || echo '?')"
-      msg "Installed: node ${node_v}, npm ${npm_v}"
-   else
-      msg "Installed to ${INSTALL_DIR} (run '${BIN_DIR}/node --version' to verify)"
-   fi
-   msg "Done."
-}
-
-main "$@"
+asset="$(detect_asset)"
+install_versioned_tool "Node.js" "${VERSION}" \
+   "https://nodejs.org/dist/v${VERSION}/${asset}" \
+   "${BIN_DIR}/node-${VERSION}" \
+   stage_tarball_strip verify_node \
+   "node=bin/node" "npm=bin/npm" "npx=bin/npx"

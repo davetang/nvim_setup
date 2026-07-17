@@ -4,7 +4,8 @@
 #
 # bash-language-server uses shfmt for formatting, so having it on PATH makes
 # `<leader>f` work on shell scripts. The release asset is a single static
-# binary (no archive). https://github.com/mvdan/sh
+# binary (no archive). The download/install/link mechanics live in
+# install_versioned_tool (lib.sh). https://github.com/mvdan/sh
 #
 # Usage:
 #   ./shfmt.sh
@@ -14,72 +15,37 @@
 
 set -euo pipefail
 
+# Shared helpers (install_versioned_tool/msg/die/...), kept beside this script.
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
 
 readonly VERSION="${SHFMT_VERSION:-3.13.1}"
 readonly BIN_DIR="${BIN_DIR:-${HOME}/bin}"
-readonly INSTALL_DIR="${BIN_DIR}/shfmt-${VERSION}"
-readonly SYMLINK="${BIN_DIR}/shfmt"
 
+# Map this machine to the shfmt release asset name.
 detect_asset() {
-   local kernel arch os cpu
-   kernel="$(uname -s)"
-   arch="$(uname -m)"
-   case "${kernel}" in
+   local os cpu
+   case "$(uname -s)" in
       Linux)  os="linux" ;;
       Darwin) os="darwin" ;;
-      *)      die "Unsupported operating system: ${kernel}" ;;
+      *)      die "Unsupported operating system: $(uname -s)" ;;
    esac
-   case "${arch}" in
+   case "$(uname -m)" in
       x86_64 | amd64)  cpu="amd64" ;;
       aarch64 | arm64) cpu="arm64" ;;
-      *)               die "Unsupported architecture: ${arch}" ;;
+      *)               die "Unsupported architecture: $(uname -m)" ;;
    esac
    printf 'shfmt_v%s_%s_%s' "${VERSION}" "${os}" "${cpu}"
 }
 
-link_current() {
-   ln -sf "${INSTALL_DIR}/shfmt" "${SYMLINK}"
-   msg "Linked ${SYMLINK} -> ${INSTALL_DIR}/shfmt"
-   warn_if_not_on_path "${BIN_DIR}"
+# The release asset is a bare binary, not an archive: just place and chmod it.
+stage_shfmt() {
+   mv "$1" "$2/shfmt"
+   chmod +x "$2/shfmt"
 }
 
-main() {
-   local asset url
-   asset="$(detect_asset)"
-   url="https://github.com/mvdan/sh/releases/download/v${VERSION}/${asset}"
-
-   msg "shfmt    : v${VERSION}"
-   msg "Platform : $(uname -s) $(uname -m) -> ${asset}"
-   msg "Source   : ${url}"
-   msg "Target   : ${INSTALL_DIR}"
-
-   if [[ -n "${DRY_RUN:-}" ]]; then
-      msg "DRY_RUN set; nothing was downloaded or installed."
-      return 0
-   fi
-
-   if [[ -d "${INSTALL_DIR}" && -z "${FORCE:-}" ]]; then
-      msg "${INSTALL_DIR} already exists; skipping download (set FORCE=1 to reinstall)."
-      link_current
-      return 0
-   fi
-
-   mkdir -p "${BIN_DIR}"
-   tmp="$(mktemp -d)"
-
-   msg "Downloading ${asset} ..."
-   download "${url}" "${tmp}/shfmt"
-
-   # The asset is a bare binary, not an archive.
-   rm -rf "${INSTALL_DIR}"
-   mkdir -p "${INSTALL_DIR}"
-   mv "${tmp}/shfmt" "${INSTALL_DIR}/shfmt"
-   chmod +x "${INSTALL_DIR}/shfmt"
-
-   link_current
-   msg "Installed: shfmt $("${INSTALL_DIR}/shfmt" --version 2>/dev/null || true)"
-   msg "Done."
-}
-
-main "$@"
+asset="$(detect_asset)"
+install_versioned_tool "shfmt" "${VERSION}" \
+   "https://github.com/mvdan/sh/releases/download/v${VERSION}/${asset}" \
+   "${BIN_DIR}/shfmt-${VERSION}" \
+   stage_shfmt "" \
+   "shfmt=shfmt"
