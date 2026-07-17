@@ -146,13 +146,23 @@ Notable things the config (`init.lua`) sets up — see the full keymap list with
   outside a repo — e.g. `gd` on a Bash function jumps to its definition in a
   sibling file (bashls also sets `includeAllWorkspaceSymbols` so it looks across
   the whole workspace, not only `source`d files).
-- **Markdown preview.** `<leader>mp` (`:MarkdownPreviewToggle`) starts a live
-  preview server on port **8090** and *prints its URL* rather than opening a
-  browser — deliberately headless, since nvim runs on a remote box. Forward the
-  port from your machine (`ssh -L 8090:localhost:8090 …`) and open the URL in
-  your local browser; it auto-updates as you type and renders mermaid, KaTeX,
-  emoji, and task lists. (First use needs the plugin's Node build to have
-  succeeded — check `:Lazy` if the preview does nothing.)
+- **Diagnostics.** Errors and warnings show inline (virtual text) at the end of
+  the flagged line, so you can read them without moving onto each one; `<leader>d`
+  opens the full message in a float and `]d` / `[d` jump between them. When a line
+  has diagnostics from more than one server (e.g. pyright and ruff), the source
+  name is appended.
+- **Markdown.** Two ways to view it. **In-buffer:**
+  [render-markdown.nvim](https://github.com/MeanderingProgrammer/render-markdown.nvim)
+  draws headings, fenced code, tables, and checkboxes right in the buffer as you
+  edit (the raw markup returns on the line you're on); it's automatic on markdown
+  files and `<leader>mr` toggles it. **In a browser:** `<leader>mp`
+  (`:MarkdownPreviewToggle`) starts a live preview server on port **8090** and
+  *prints its URL* rather than opening a browser — deliberately headless, since
+  nvim runs on a remote box. Forward the port from your machine
+  (`ssh -L 8090:localhost:8090 …`) and open the URL locally; it auto-updates as
+  you type and renders mermaid, KaTeX, emoji, and task lists. (First use needs
+  the plugin's Node build to have succeeded — check `:Lazy` if the preview does
+  nothing.)
 - **Clipboard.** OSC 52 — `"+y` copies to your *local* clipboard over SSH.
 - **Undo.** Persistent across sessions (`undofile`).
 - **Ask about code (Ollama).** `<leader>cc` opens a chat with a local LLM via
