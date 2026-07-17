@@ -5,6 +5,14 @@ Open it anytime with `:Cheatsheet`.
 
 **Leaders:** `<leader>` = **Space**, `<localleader>` = **\\** (backslash).
 
+## General
+
+* When in `:terminal` use `Ctrl + \ + n` to go back to normal mode.
+* When using vsplit:
+    * Cycle between the splits: `Ctrl-w w`
+    * Move to the left split: `Ctrl-w h`
+    * Move to the right split: `Ctrl-w l`
+
 ## LSP (code intelligence)
 
 | Key | Action |
