@@ -90,13 +90,18 @@ Inside the **`:G` status window**:
 
 | Key / Command | Action |
 |-----|--------|
-| `<leader>mp` | Toggle live preview (`:MarkdownPreviewToggle`) |
+| `<leader>mr` | Toggle **in-buffer** render (render-markdown.nvim; auto-on for markdown) |
+| `<leader>mp` | Toggle live browser preview (`:MarkdownPreviewToggle`) |
 | `:MarkdownPreview` / `:MarkdownPreviewStop` | Start / stop the preview |
 | `:Toc` | Table of contents (vim-markdown) |
 | `zR` / `zM` | Open / close all header folds |
 | `]]` / `[[` | Next / previous header |
 
-Preview runs on a fixed port (8090) for headless/SSH use — forward it with `ssh -L 8090:localhost:8090`.
+Two ways to view Markdown: **render-markdown.nvim** draws it right in the buffer
+(no browser — the raw markup returns on the line you're editing), while
+**markdown-preview** opens a full browser render (mermaid, KaTeX). The preview
+runs on a fixed port (8090) for headless/SSH use — forward it with
+`ssh -L 8090:localhost:8090`.
 
 ## Ask about code (CodeCompanion + Ollama)
 

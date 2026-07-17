@@ -268,6 +268,10 @@ vim.cmd([[
 ]])
 vim.g.mkdp_browserfunc = "MkdpNoopBrowser"
 vim.keymap.set('n', '<leader>mp', '<cmd>MarkdownPreviewToggle<cr>', { desc = 'Markdown preview' })
+-- Toggle in-buffer Markdown rendering (render-markdown.nvim). Markdown files
+-- render automatically; this flips back to raw markup when you want to edit or
+-- copy it verbatim.
+vim.keymap.set('n', '<leader>mr', '<cmd>RenderMarkdown toggle<cr>', { desc = 'Toggle in-buffer Markdown render' })
 
 -- CodeCompanion: ask about code without leaving Neovim, backed by Ollama. The
 -- built-in ollama adapter talks to $OLLAMA_HOST (else http://localhost:11434),
