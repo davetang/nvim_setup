@@ -2,9 +2,10 @@
 #
 # link_config.sh - symlink this bundle's Neovim config into ~/.config/nvim.
 #
-# The config sources (init.lua, lazy.lua, spec1.lua, practice.md) live beside
-# this script, so the whole setup directory is self-contained. Idempotent, and
-# any real file it would overwrite is backed up first (never clobbered).
+# The config sources (init.lua, lazy.lua, spec1.lua, practice.md, cheatsheet.md)
+# live beside this script, so the whole setup directory is self-contained.
+# Idempotent, and any real file it would overwrite is backed up first (never
+# clobbered).
 #
 # Usage:
 #   ./link_config.sh

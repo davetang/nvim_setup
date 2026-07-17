@@ -47,12 +47,11 @@ deps` on its own any time to vet a machine before installing.
 - Internet access (GitHub, nodejs.org, npm, PyPI, conda-forge) — the preflight
   only *warns* if it can't reach GitHub, since proxies make connectivity checks
   unreliable
-- For the Make language server (`makels`): **Python 3.11 or newer**, venv-capable
-  — an active conda env already provides this (`conda create -n py311 python=3.11`
-  if base is older); a bare Debian/Ubuntu `python3` needs the `python3-venv`
-  package. 3.11 is the floor because the server's `lsp_tree_sitter` dependency
-  imports `typing.Self`, which only exists from Python 3.11 — on an older
-  `python3` it crashes on startup.
+- For the Make language server (`makels`): **Python 3.11 or newer** — the active
+  conda env already provides this (recreate base, or make one with `conda create
+  -n py311 python=3.11`, if it's older). 3.11 is the floor because the server's
+  `lsp_tree_sitter` dependency imports `typing.Self`, which only exists from
+  Python 3.11 — on an older `python3` it crashes on startup.
 - Node.js and the tree-sitter CLI are installed by the bundle (tree-sitter from
   conda-forge), so they are *not* prerequisites
 

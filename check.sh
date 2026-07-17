@@ -42,6 +42,29 @@ for tool in nvim node npm npx tree-sitter shellcheck shfmt ruff; do
    fi
 done
 
+# --- toolchain: conda + Python underpin tree-sitter and the Make LSP --------
+hdr "Toolchain (conda + Python)"
+if command -v conda >/dev/null 2>&1; then
+   ok "conda -> $(command -v conda)"
+   if [[ -n "${CONDA_PREFIX:-}" ]]; then
+      ok "active conda env: ${CONDA_PREFIX}"
+   else
+      warn "no active conda env (CONDA_PREFIX unset)  ->  conda activate base  (needed to install tree-sitter)"
+   fi
+else
+   warn "conda not found  (Miniforge is required; tree-sitter is installed from conda-forge)"
+fi
+if command -v python3 >/dev/null 2>&1; then
+   pyver="$(python3 -c 'import sys; print("%d.%d.%d" % sys.version_info[:3])' 2>/dev/null || true)"
+   if python3 -c 'import sys; sys.exit(0 if sys.version_info[:2] >= (3, 11) else 1)' 2>/dev/null; then
+      ok "python3 ${pyver:-?} -> $(command -v python3)"
+   else
+      warn "python3 ${pyver:-unknown} is < 3.11 (the Make LSP needs 3.11+)  ->  $(command -v python3)"
+   fi
+else
+   info "python3 not found  (needed for the Make language server)"
+fi
+
 # --- config symlinks: do they point into this bundle? ----------------------
 hdr "Config (~/.config/nvim symlinks should point into this bundle)"
 check_link() {
