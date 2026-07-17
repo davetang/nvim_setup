@@ -15,8 +15,7 @@
 #   make install      Install everything (runs `deps` first; aborts if any unmet)
 #   make nvim         Install Neovim into ~/bin/nvim-<version>
 #   make node         Install Node.js into ~/bin/node-<version>
-#   make tree-sitter  Install the tree-sitter CLI into ~/bin
-#   make cargo        Install Rust/cargo (for TREE_SITTER_METHOD=cargo on old glibc)
+#   make tree-sitter  Install the tree-sitter CLI (conda-forge) into ~/bin
 #   make screen       Build GNU Screen 5.x from source (true 24-bit colour)
 #   make shellcheck   Install ShellCheck (Bash linting, used by bashls)
 #   make shfmt        Install shfmt (Bash formatting, used by bashls)
@@ -41,7 +40,7 @@ ROOT := $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 # keep the build sequential even if invoked with -j.
 .NOTPARALLEL:
 
-.PHONY: help setup deps install nvim node tree-sitter cargo screen shellcheck shfmt ruff lsp bashls pyright makels check
+.PHONY: help setup deps install nvim node tree-sitter screen shellcheck shfmt ruff lsp bashls pyright makels check
 
 help:
 	@echo 'Usage: make <target>'
@@ -52,8 +51,7 @@ help:
 	@echo '  install      Install everything (runs deps first; aborts if any unmet)'
 	@echo '  nvim         Install Neovim into ~/bin'
 	@echo '  node         Install Node.js into ~/bin'
-	@echo '  tree-sitter  Install the tree-sitter CLI into ~/bin'
-	@echo '  cargo        Install Rust/cargo (for TREE_SITTER_METHOD=cargo)'
+	@echo '  tree-sitter  Install the tree-sitter CLI (conda-forge) into ~/bin'
 	@echo '  screen       Build GNU Screen 5.x from source (true 24-bit colour)'
 	@echo '  shellcheck   Install ShellCheck (Bash linting, used by bashls)'
 	@echo '  shfmt        Install shfmt (Bash formatting, used by bashls)'
@@ -70,9 +68,9 @@ setup:
 	$(ROOT)link_config.sh
 
 # Preflight: verify every prerequisite the README lists (make/tar/curl, a C
-# compiler, Python 3.11+ with venv support, glibc for the prebuilt tree-sitter)
-# is present. Read-only. `install` depends on it, so a missing dependency stops
-# the whole run up front instead of failing partway through a download.
+# compiler, Python 3.11+ with venv support, and an active conda env for
+# tree-sitter) is present. Read-only. `install` depends on it, so a missing
+# dependency stops the whole run up front instead of failing partway through.
 deps:
 	$(ROOT)deps.sh
 
@@ -88,16 +86,10 @@ nvim:
 node:
 	$(ROOT)node.sh
 
-# tree-sitter CLI - nvim-treesitter's main branch builds parsers with it. Set
-# TREE_SITTER_METHOD=cargo to build from source on machines with an old glibc.
+# tree-sitter CLI - nvim-treesitter's main branch builds parsers with it.
+# Installed from conda-forge into the active conda env, so it runs on old glibc.
 tree-sitter:
 	$(ROOT)tree_sitter.sh
-
-# Rust/cargo - only needed to build tree-sitter from source
-# (TREE_SITTER_METHOD=cargo) where the prebuilt binary's glibc is too new.
-# Not part of `make install`.
-cargo:
-	$(ROOT)cargo.sh
 
 # GNU Screen 5.x built from source - only needed for true 24-bit colour through
 # screen (4.x down-samples termguicolors to 256). Optional; not part of

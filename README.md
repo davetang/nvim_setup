@@ -13,13 +13,11 @@ export PATH="$HOME/bin:$PATH"     # add to your shell rc so it persists
 nvim
 ```
 
-**On an older Linux** (glibc < 2.39, e.g. many HPC/cluster nodes) the prebuilt
-tree-sitter won't run — install it from conda-forge instead (needs an active
-Miniforge/conda env), otherwise identical:
-
-```sh
-make setup && TREE_SITTER_METHOD=conda make install
-```
+**Requires an active [Miniforge](https://github.com/conda-forge/miniforge)/conda
+environment** — `conda activate base` is enough. tree-sitter is installed from
+conda-forge, which needs no compiler and runs even on the older glibc of many
+HPC/cluster nodes. `make install` checks for it up front and won't start without
+it.
 
 - `make setup` — symlinks the config (`init.lua`, `lazy.lua`, `spec1.lua`,
   `practice.md`, `cheatsheet.md`) into `~/.config/nvim`.
@@ -42,28 +40,21 @@ deps` on its own any time to vet a machine before installing.
 
 - `make`, `tar`, and `curl` or `wget`
 - a C compiler (`cc`/`gcc`/`clang`) — nvim-treesitter builds parsers with it
-- Internet access (GitHub, nodejs.org, npm, PyPI) — the preflight only *warns*
-  if it can't reach GitHub, since proxies make connectivity checks unreliable
+- **[Miniforge](https://github.com/conda-forge/miniforge)/conda** with an active
+  environment (`conda activate base` is enough) — tree-sitter is installed from
+  conda-forge into it (prebuilt, needs no compiler, runs on old glibc), so it is
+  the one method that works on every machine, HPC nodes included
+- Internet access (GitHub, nodejs.org, npm, PyPI, conda-forge) — the preflight
+  only *warns* if it can't reach GitHub, since proxies make connectivity checks
+  unreliable
 - For the Make language server (`makels`): **Python 3.11 or newer**, venv-capable
-  — conda's works (`conda create -n py311 python=3.11 && conda activate py311`); a
-  bare Debian/Ubuntu `python3` needs the `python3-venv` package. 3.11 is the floor
-  because the server's `lsp_tree_sitter` dependency imports `typing.Self`, which
-  only exists from Python 3.11 — on an older `python3` it crashes on startup.
-- Node.js and the tree-sitter CLI are installed by the bundle, so they are
-  *not* prerequisites
-- The prebuilt Neovim and tree-sitter binaries are dynamically linked;
-  tree-sitter needs **glibc 2.39+** (Ubuntu 24.04 / recent Linux). On an older
-  system, pick a different tree-sitter method with `TREE_SITTER_METHOD` — set it
-  for the *whole* install (it propagates to the `tree-sitter` step) and use it
-  **every time**, since plain `make install` re-downloads the prebuilt binary:
-  - **conda** (easiest, needs Miniforge/conda): `TREE_SITTER_METHOD=conda make
-    install` installs conda-forge's `tree-sitter-cli` (built for old glibc) and
-    links it into `~/bin`.
-  - **cargo** (no conda): `make cargo` once, then `TREE_SITTER_METHOD=cargo make
-    install`. Builds from source — needs a C compiler *and* libclang.
-
-  To repair an existing install without redoing everything, run just
-  `TREE_SITTER_METHOD=<conda|cargo> make tree-sitter`.
+  — an active conda env already provides this (`conda create -n py311 python=3.11`
+  if base is older); a bare Debian/Ubuntu `python3` needs the `python3-venv`
+  package. 3.11 is the floor because the server's `lsp_tree_sitter` dependency
+  imports `typing.Self`, which only exists from Python 3.11 — on an older
+  `python3` it crashes on startup.
+- Node.js and the tree-sitter CLI are installed by the bundle (tree-sitter from
+  conda-forge), so they are *not* prerequisites
 
 ## What gets installed, and where
 
@@ -89,8 +80,7 @@ deps` on its own any time to vet a machine before installing.
 | `make install` | Everything (Neovim, Node, tree-sitter, tools, servers) |
 | `make nvim` | Install Neovim into `~/bin` |
 | `make node` | Install Node.js into `~/bin` |
-| `make tree-sitter` | Install the tree-sitter CLI into `~/bin` |
-| `make cargo` | Install Rust/cargo (only for `TREE_SITTER_METHOD=cargo`) |
+| `make tree-sitter` | Install the tree-sitter CLI from conda-forge into `~/bin` |
 | `make screen` | Build GNU Screen 5.x from source for true 24-bit colour (opt-in; needs a compiler + ncurses) |
 | `make shellcheck` / `make shfmt` | ShellCheck / shfmt for Bash (used by bashls) |
 | `make ruff` | Ruff for Python (lint + format, runs as an LSP) |
@@ -115,7 +105,6 @@ Set as environment variables, e.g. `NVIM_VERSION=0.11.3 make nvim`:
 | `NVIM_VERSION`, `NODE_VERSION`, `TREE_SITTER_VERSION`, `SHELLCHECK_VERSION`, `SHFMT_VERSION`, `RUFF_VERSION`, `SCREEN_VERSION` | Pin a specific version instead of the default |
 | `FORCE=1` | Reinstall even if the versioned directory already exists |
 | `DRY_RUN=1` | Print what would happen without downloading (the binary installers) |
-| `TREE_SITTER_METHOD` | tree-sitter install method: `prebuilt` (default), `conda`, or `cargo` (for old glibc) |
 | `NCURSES_PREFIX` | `make screen`: an ncurses install to build against (else an active conda env, else the system) |
 | `BIN_DIR` / `LIB_DIR` | Override the install prefixes (default `~/bin` / `~/lib`) |
 
@@ -205,3 +194,6 @@ make install && make setup
 export PATH="$HOME/bin:$PATH"
 nvim
 ```
+
+The image needs Miniforge/conda with an active env (tree-sitter comes from
+conda-forge) — `make install` stops early via `make deps` if it's missing.

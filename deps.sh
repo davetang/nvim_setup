@@ -16,8 +16,8 @@
 #   core        make, tar, and a downloader (curl or wget)
 #   compiler    a C compiler (cc/gcc/clang) - nvim-treesitter builds parsers with it
 #   python      python3 >= 3.11, venv-capable - the Make language server needs it
-#   treesitter  glibc >= 2.39 when installing the *prebuilt* tree-sitter (the
-#               default method) on Linux, which otherwise installs but cannot run
+#   conda       conda (Miniforge) with an active env - tree-sitter is installed
+#               from conda-forge into it
 #   network     best-effort reachability of github.com (ADVISORY - warns only,
 #               never blocks, since proxies/firewalls make it unreliable)
 #
@@ -26,10 +26,9 @@
 # on an older python3 the Make language server crashes on startup.
 #
 # Usage:
-#   ./deps.sh                            # check everything
-#   ./deps.sh python                     # check only the Python requirement
-#   TREE_SITTER_METHOD=conda ./deps.sh   # skips the prebuilt-glibc check
-#   DRY_RUN=1 ./deps.sh                  # report problems but exit 0 (don't block)
+#   ./deps.sh                  # check everything
+#   ./deps.sh python           # check only the Python requirement
+#   DRY_RUN=1 ./deps.sh        # report problems but exit 0 (don't block)
 
 set -uo pipefail
 
@@ -40,10 +39,9 @@ readonly HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # --- configuration ----------------------------------------------------------
 
-# Minimum Python (see header) and glibc (prebuilt tree-sitter binary) versions.
+# Minimum Python (see header) - the Make language server needs it.
 readonly MIN_PY_MAJOR=3
 readonly MIN_PY_MINOR=11
-readonly MIN_GLIBC="2.39"
 
 # --- reporting --------------------------------------------------------------
 
@@ -57,25 +55,6 @@ hdr()  { printf '\n%s\n' "$*" >&2; }
 # every unmet dependency at the end instead of dying on the first.
 fails=()
 record_fail() { fails+=("$1"); }
-
-# --- version helpers --------------------------------------------------------
-
-# True (0) if version $1 >= version $2. Only ever called on Linux (for the
-# glibc check), so GNU sort -V is available.
-version_ge() {
-   local lower
-   lower="$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -n1)"
-   [[ "${lower}" == "$2" ]]
-}
-
-# Print the system glibc version (e.g. 2.39), or nothing if it can't be
-# determined (musl, unusual libc, ...).
-glibc_version() {
-   local v
-   v="$(getconf GNU_LIBC_VERSION 2>/dev/null | awk '{print $2}')"
-   [[ -z "${v}" ]] && v="$(ldd --version 2>/dev/null | head -n1 | awk '{print $NF}')"
-   [[ "${v}" =~ ^[0-9]+\.[0-9]+ ]] && printf '%s' "${BASH_REMATCH[0]}"
-}
 
 # --- checks -----------------------------------------------------------------
 
@@ -151,32 +130,21 @@ PY
    fi
 }
 
-check_treesitter() {
-   local method="${TREE_SITTER_METHOD:-prebuilt}"
-   hdr "tree-sitter (method: ${method})"
-
-   # Only the prebuilt binary is glibc-sensitive; the conda and cargo methods
-   # check their own prerequisites in tree_sitter.sh, so don't duplicate them.
-   if [[ "${method}" != "prebuilt" ]]; then
-      note "method '${method}' selected; the prebuilt-glibc check does not apply"
+# tree-sitter is installed from conda-forge into the active conda environment,
+# so both conda itself and an active env are required.
+check_conda() {
+   hdr "Conda (tree-sitter)"
+   if ! command -v conda >/dev/null 2>&1; then
+      bad "conda not found"
+      record_fail "conda (Miniforge) is required - tree-sitter is installed from conda-forge; install Miniforge, then 'conda activate base'"
       return
    fi
-   if [[ "$(uname -s)" != "Linux" ]]; then
-      ok "$(uname -s): the prebuilt-glibc check applies to Linux only"
-      return
-   fi
-
-   local glibc
-   glibc="$(glibc_version)"
-   if [[ -z "${glibc}" ]]; then
-      note "could not determine glibc version; if tree-sitter fails to run, reinstall with TREE_SITTER_METHOD=conda or =cargo"
-      return
-   fi
-   if version_ge "${glibc}" "${MIN_GLIBC}"; then
-      ok "glibc ${glibc} (>= ${MIN_GLIBC})"
+   ok "conda -> $(command -v conda)"
+   if [[ -n "${CONDA_PREFIX:-}" ]]; then
+      ok "active conda env: ${CONDA_PREFIX}"
    else
-      bad "glibc ${glibc} is older than ${MIN_GLIBC}; the prebuilt tree-sitter won't run"
-      record_fail "the prebuilt tree-sitter needs glibc >= ${MIN_GLIBC} (found ${glibc}); install with TREE_SITTER_METHOD=conda (needs Miniforge) or, without conda, 'make cargo' then TREE_SITTER_METHOD=cargo"
+      bad "no active conda environment (CONDA_PREFIX unset)"
+      record_fail "activate a conda environment before installing - 'conda activate base' (tree-sitter-cli installs into the active env)"
    fi
 }
 
@@ -203,7 +171,7 @@ check_network() {
 main() {
    local groups=("$@")
    if [[ ${#groups[@]} -eq 0 ]]; then
-      groups=(core compiler python treesitter network)
+      groups=(core compiler python conda network)
    fi
 
    msg "Checking dependencies (bundle: ${HERE}) ..."
@@ -214,9 +182,9 @@ main() {
          core)       check_core ;;
          compiler)   check_compiler ;;
          python)     check_python ;;
-         treesitter) check_treesitter ;;
+         conda)      check_conda ;;
          network)    check_network ;;
-         *)          die "unknown dependency group '${g}' (use: core compiler python treesitter network)" ;;
+         *)          die "unknown dependency group '${g}' (use: core compiler python conda network)" ;;
       esac
    done
 
