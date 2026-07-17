@@ -79,6 +79,7 @@ and a C compiler for the Treesitter parsers) — if highlighting errors, run
 | `make node` | Install Node.js into `~/bin` |
 | `make tree-sitter` | Install the tree-sitter CLI into `~/bin` |
 | `make cargo` | Install Rust/cargo (only for `TREE_SITTER_METHOD=cargo`) |
+| `make screen` | Build GNU Screen 5.x from source for true 24-bit colour (opt-in; needs a compiler + ncurses) |
 | `make shellcheck` / `make shfmt` | ShellCheck / shfmt for Bash (used by bashls) |
 | `make ruff` | Ruff for Python (lint + format, runs as an LSP) |
 | `make lsp` | All language servers (`bashls` + `pyright` + `makels`) |
@@ -97,10 +98,11 @@ Set as environment variables, e.g. `NVIM_VERSION=0.11.3 make nvim`:
 
 | Variable | Effect |
 |----------|--------|
-| `NVIM_VERSION`, `NODE_VERSION`, `TREE_SITTER_VERSION`, `SHELLCHECK_VERSION`, `SHFMT_VERSION`, `RUFF_VERSION` | Pin a specific version instead of the default |
+| `NVIM_VERSION`, `NODE_VERSION`, `TREE_SITTER_VERSION`, `SHELLCHECK_VERSION`, `SHFMT_VERSION`, `RUFF_VERSION`, `SCREEN_VERSION` | Pin a specific version instead of the default |
 | `FORCE=1` | Reinstall even if the versioned directory already exists |
 | `DRY_RUN=1` | Print what would happen without downloading (the binary installers) |
 | `TREE_SITTER_METHOD` | tree-sitter install method: `prebuilt` (default), `conda`, or `cargo` (for old glibc) |
+| `NCURSES_PREFIX` | `make screen`: an ncurses install to build against (else an active conda env, else the system) |
 | `BIN_DIR` / `LIB_DIR` | Override the install prefixes (default `~/bin` / `~/lib`) |
 
 ## Notes
@@ -126,12 +128,14 @@ Set as environment variables, e.g. `NVIM_VERSION=0.11.3 make nvim`:
 Notable things the config (`init.lua`) sets up — see the full keymap list with
 `:Cheatsheet` inside nvim.
 
-- **Colours.** Solarized dark, in **256-colour mode** (`termguicolors` is
-  *off*). 24-bit truecolor doesn't survive GNU `screen`, whereas 256-colour
-  renders through any terminal/multiplexer. To use true 24-bit colour instead:
-  set `vim.opt.termguicolors = true`, drop `vim.g.solarized_termcolors`, and
-  enable truecolor in your multiplexer (for screen: `term screen-256color` +
-  `truecolor on` in `~/.screenrc`).
+- **Colours.** Solarized dark via
+  [solarized.nvim](https://github.com/maxmx03/solarized.nvim), in true 24-bit
+  colour (`termguicolors` on by default). This needs the *whole* chain to carry
+  24-bit: a truecolor terminal, and, if you use a multiplexer, one that passes
+  it through. GNU `screen` only does since **5.0** (`truecolor on` in
+  `~/.screenrc`, in a *fresh* session); 4.x silently down-samples to 256 — if
+  your `screen` is older, **`make screen`** builds 5.x locally under `~/bin`.
+  (tmux carries truecolor with the usual `Tc`/`RGB` terminfo override.)
 - **Completion.** Native LSP completion (autotriggered) plus buffer-word
   completion in every filetype — the menu pops up as you type. `<Tab>`/`<S-Tab>`
   select, `<CR>` confirms. (coc.nvim was replaced by the built-in completion.)

@@ -49,15 +49,18 @@ vim.opt.mouse = ""
 -- keep undo history across sessions
 vim.opt.undofile = true
 
--- solarized colorscheme (dark) in 256-colour mode. Truecolor (termguicolors)
--- does not survive through GNU screen here, so we use solarized's 256-colour
--- palette instead - it renders through any terminal/multiplexer. termguicolors
--- and solarized_termcolors must be set before the scheme loads. pcall so a
--- fresh install (before the plugin exists) doesn't error.
-vim.opt.termguicolors = false
-vim.g.solarized_termcolors = 256
+-- Solarized (dark) via maxmx03/solarized.nvim - a modern Lua theme that needs
+-- true 24-bit colour. termguicolors is on unconditionally now that every
+-- workstation runs a truecolor-capable terminal and GNU screen 5.x (4.x
+-- down-samples to 256; see the README colour note and `make screen`). Set
+-- before the scheme loads; pcall so a fresh install (before the plugin exists)
+-- doesn't error.
+vim.opt.termguicolors = true
 vim.opt.background = 'dark'
-pcall(vim.cmd.colorscheme, 'solarized')
+pcall(function()
+  require('solarized').setup({})
+  vim.cmd.colorscheme('solarized')
+end)
 
 -- Yank to the system clipboard over SSH via OSC 52 (use "+y). OSC 52 *paste*
 -- needs terminal support and may not work through screen.

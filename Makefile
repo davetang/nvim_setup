@@ -16,6 +16,7 @@
 #   make node         Install Node.js into ~/bin/node-<version>
 #   make tree-sitter  Install the tree-sitter CLI into ~/bin
 #   make cargo        Install Rust/cargo (for TREE_SITTER_METHOD=cargo on old glibc)
+#   make screen       Build GNU Screen 5.x from source (true 24-bit colour)
 #   make shellcheck   Install ShellCheck (Bash linting, used by bashls)
 #   make shfmt        Install shfmt (Bash formatting, used by bashls)
 #   make ruff         Install Ruff (Python lint + format, run as an LSP)
@@ -39,7 +40,7 @@ ROOT := $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 # keep the build sequential even if invoked with -j.
 .NOTPARALLEL:
 
-.PHONY: help setup install nvim node tree-sitter cargo shellcheck shfmt ruff lsp bashls pyright makels check
+.PHONY: help setup install nvim node tree-sitter cargo screen shellcheck shfmt ruff lsp bashls pyright makels check
 
 help:
 	@echo 'Usage: make <target>'
@@ -51,6 +52,7 @@ help:
 	@echo '  node         Install Node.js into ~/bin'
 	@echo '  tree-sitter  Install the tree-sitter CLI into ~/bin'
 	@echo '  cargo        Install Rust/cargo (for TREE_SITTER_METHOD=cargo)'
+	@echo '  screen       Build GNU Screen 5.x from source (true 24-bit colour)'
 	@echo '  shellcheck   Install ShellCheck (Bash linting, used by bashls)'
 	@echo '  shfmt        Install shfmt (Bash formatting, used by bashls)'
 	@echo '  ruff         Install Ruff (Python lint + format, run as an LSP)'
@@ -86,6 +88,12 @@ tree-sitter:
 # Not part of `make install`.
 cargo:
 	$(ROOT)cargo.sh
+
+# GNU Screen 5.x built from source - only needed for true 24-bit colour through
+# screen (4.x down-samples termguicolors to 256). Optional; not part of
+# `make install`. Needs a C compiler, make, and ncurses/termcap.
+screen:
+	$(ROOT)screen.sh
 
 # ShellCheck - Bash linter that bash-language-server picks up automatically.
 shellcheck:

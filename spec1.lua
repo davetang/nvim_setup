@@ -83,8 +83,16 @@ return {
   -- mapped to <Leader>tm by default (which means `\tm`)
   { "dhruvasagar/vim-table-mode" },
 
+  -- https://github.com/maxmx03/solarized.nvim
+  -- Modern Lua Solarized: true 24-bit colour, treesitter- and LSP-aware.
+  -- Requires termguicolors (init.lua sets it) and a require('solarized').setup()
+  -- call (also in init.lua). Loaded eagerly with a high priority so its
+  -- highlights load before other UI plugins. nvim-treesitter (declared above) is
+  -- its one dependency and is already installed.
   {
-    "altercation/vim-colors-solarized"
+    "maxmx03/solarized.nvim",
+    lazy = false,
+    priority = 1000,
   },
 
   -- https://github.com/preservim/vim-markdown
