@@ -24,7 +24,9 @@ make setup && TREE_SITTER_METHOD=conda make install
 - `make setup` — symlinks the config (`init.lua`, `lazy.lua`, `spec1.lua`,
   `practice.md`, `cheatsheet.md`) into `~/.config/nvim`.
 - `make install` — downloads Neovim, Node.js, tree-sitter, the linters/
-  formatters (ShellCheck, shfmt, Ruff) and the language servers into `$HOME`.
+  formatters (ShellCheck, shfmt, Ruff) and the language servers into `$HOME`. It
+  first runs `make deps` (a read-only preflight) and stops before downloading
+  anything if a prerequisite — e.g. Python 3.11+ — is missing.
 
 The installers only *warn* about `PATH`; adding `~/bin` to it is the one manual
 step. On first launch, `nvim` installs its plugins via lazy.nvim (needs network
@@ -33,11 +35,20 @@ and a C compiler for the Treesitter parsers) — if highlighting errors, run
 
 ## Requirements
 
+`make install` runs **`make deps`** first — a read-only preflight that verifies
+everything below and, if anything is missing, reports *all* of the problems at
+once and refuses to start (so a half-finished install never happens). Run `make
+deps` on its own any time to vet a machine before installing.
+
 - `make`, `tar`, and `curl` or `wget`
 - a C compiler (`cc`/`gcc`/`clang`) — nvim-treesitter builds parsers with it
-- Internet access (GitHub, nodejs.org, npm, PyPI)
-- For the Make language server (`makels`): a venv-capable `python3` — conda's
-  works; a bare Debian/Ubuntu `python3` needs the `python3-venv` package
+- Internet access (GitHub, nodejs.org, npm, PyPI) — the preflight only *warns*
+  if it can't reach GitHub, since proxies make connectivity checks unreliable
+- For the Make language server (`makels`): **Python 3.11 or newer**, venv-capable
+  — conda's works (`conda create -n py311 python=3.11 && conda activate py311`); a
+  bare Debian/Ubuntu `python3` needs the `python3-venv` package. 3.11 is the floor
+  because the server's `lsp_tree_sitter` dependency imports `typing.Self`, which
+  only exists from Python 3.11 — on an older `python3` it crashes on startup.
 - Node.js and the tree-sitter CLI are installed by the bundle, so they are
   *not* prerequisites
 - The prebuilt Neovim and tree-sitter binaries are dynamically linked;
@@ -74,6 +85,7 @@ and a C compiler for the Treesitter parsers) — if highlighting errors, run
 | Target | Does |
 |--------|------|
 | `make setup` | Symlink the Neovim config into `~/.config/nvim` |
+| `make deps` | Preflight — verify all prerequisites are present (read-only); `make install` runs it first and won't start if any is missing |
 | `make install` | Everything (Neovim, Node, tree-sitter, tools, servers) |
 | `make nvim` | Install Neovim into `~/bin` |
 | `make node` | Install Node.js into `~/bin` |
@@ -90,7 +102,9 @@ and a C compiler for the Treesitter parsers) — if highlighting errors, run
 | `make help` | List targets |
 
 Running targets individually? Install `node` before `lsp` (the Bash and Python
-servers need `npm`). `make install` already orders them correctly.
+servers need `npm`). `make install` already orders them correctly. `make makels`
+re-runs the Python 3.11 part of the preflight on its own, so it won't build a
+venv against a too-old `python3`.
 
 ## Options
 

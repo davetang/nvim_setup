@@ -11,7 +11,8 @@
 #
 # Targets:
 #   make setup        Symlink the Neovim config into ~/.config/nvim
-#   make install      Install everything
+#   make deps         Preflight: check every prerequisite is present (read-only)
+#   make install      Install everything (runs `deps` first; aborts if any unmet)
 #   make nvim         Install Neovim into ~/bin/nvim-<version>
 #   make node         Install Node.js into ~/bin/node-<version>
 #   make tree-sitter  Install the tree-sitter CLI into ~/bin
@@ -40,14 +41,15 @@ ROOT := $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 # keep the build sequential even if invoked with -j.
 .NOTPARALLEL:
 
-.PHONY: help setup install nvim node tree-sitter cargo screen shellcheck shfmt ruff lsp bashls pyright makels check
+.PHONY: help setup deps install nvim node tree-sitter cargo screen shellcheck shfmt ruff lsp bashls pyright makels check
 
 help:
 	@echo 'Usage: make <target>'
 	@echo
 	@echo 'Targets:'
 	@echo '  setup        Symlink the Neovim config into ~/.config/nvim'
-	@echo '  install      Install everything'
+	@echo '  deps         Preflight: check every prerequisite is present (read-only)'
+	@echo '  install      Install everything (runs deps first; aborts if any unmet)'
 	@echo '  nvim         Install Neovim into ~/bin'
 	@echo '  node         Install Node.js into ~/bin'
 	@echo '  tree-sitter  Install the tree-sitter CLI into ~/bin'
@@ -67,8 +69,16 @@ help:
 setup:
 	$(ROOT)link_config.sh
 
-# Install everything, in order (Node must precede the language servers).
-install: nvim node tree-sitter shellcheck shfmt ruff lsp
+# Preflight: verify every prerequisite the README lists (make/tar/curl, a C
+# compiler, Python 3.11+ with venv support, glibc for the prebuilt tree-sitter)
+# is present. Read-only. `install` depends on it, so a missing dependency stops
+# the whole run up front instead of failing partway through a download.
+deps:
+	$(ROOT)deps.sh
+
+# Install everything, in order (Node must precede the language servers). `deps`
+# runs first: if any prerequisite is missing, install does not start at all.
+install: deps nvim node tree-sitter shellcheck shfmt ruff lsp
 
 # Download and install Neovim locally (auto-detects OS/architecture).
 nvim:
@@ -118,8 +128,10 @@ pyright:
 	$(ROOT)pyright.sh
 
 # Make/Autotools language server (pip-based; provides make-language-server).
-# Needs a venv-capable python3.
+# Needs Python 3.11+ with venv support, so preflight that first (running it
+# standalone would otherwise reproduce the typing.Self crash on an old python3).
 makels:
+	$(ROOT)deps.sh python
 	$(ROOT)autotools_language_server.sh
 
 # Report the state of the setup (read-only): what PATH resolves to, where the
