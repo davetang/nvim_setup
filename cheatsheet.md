@@ -20,6 +20,8 @@ Open it anytime with `:Cheatsheet`.
 
 Servers: **pyright** + **ruff** (Python — types + lint/format), **bash-language-server** (sh/bash, uses **shellcheck** + **shfmt**), **make-language-server** (Makefiles).
 
+Diagnostics show **inline** (virtual text) at the end of each flagged line; `<leader>d` opens the full message in a float, and `]d` / `[d` jump between them.
+
 ## Completion (native LSP + buffer words)
 
 The menu pops up automatically as you type — from the language server in code,

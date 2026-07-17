@@ -202,6 +202,17 @@ vim.g.mapleader = " "
 --    desc = "..." -> description (shows up in :map and plugins like which-key)
 --    silent = true -> don’t echo command
 --    noremap = true -> prevent recursive mapping (default for vim.keymap.set)
+-- Diagnostics: show the message inline (virtual text) at the end of the line,
+-- so you can read an error/warning without moving onto it and opening the
+-- float. `source = 'if_many'` appends which server flagged it when a line has
+-- diagnostics from more than one (e.g. pyright vs ruff). severity_sort puts
+-- errors above warnings; update_in_insert off keeps it from flickering as you
+-- type. <leader>d still opens the full float; ]d / [d jump between them.
+vim.diagnostic.config({
+  virtual_text = { source = 'if_many' },
+  severity_sort = true,
+  update_in_insert = false,
+})
 vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, { desc = "Show diagnostic in float" })
 vim.keymap.set("n", "<leader>fe", ":Explore<CR>", { desc = "Open file explorer" })
 -- Go to definition when you want to jump to where something is defined.
