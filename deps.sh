@@ -85,15 +85,13 @@ check_core() {
 
 check_compiler() {
    hdr "C compiler"
-   local c
-   for c in cc gcc clang; do
-      if command -v "${c}" >/dev/null 2>&1; then
-         ok "C compiler: ${c} -> $(command -v "${c}")"
-         return
-      fi
-   done
-   bad "no C compiler (cc/gcc/clang)"
-   record_fail "a C compiler (cc, gcc, or clang) is required - nvim-treesitter builds its parsers with it"
+   local path
+   if path="$(have_cc)"; then
+      ok "C compiler: ${path}"
+   else
+      bad "no C compiler (cc/gcc/clang)"
+      record_fail "a C compiler (cc, gcc, or clang) is required - nvim-treesitter builds its parsers with it"
+   fi
 }
 
 check_python() {

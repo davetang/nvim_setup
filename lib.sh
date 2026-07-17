@@ -34,6 +34,29 @@ download() {
    fi
 }
 
+# --- C compiler -------------------------------------------------------------
+
+# Print the path to a C compiler (cc, gcc, or clang) if one is on PATH and
+# return 0; print nothing and return 1 otherwise. nvim-treesitter builds its
+# parsers with it, and the from-source installers (screen) need it too.
+have_cc() {
+   local c p
+   for c in cc gcc clang; do
+      if p="$(command -v "${c}" 2>/dev/null)"; then
+         printf '%s\n' "${p}"
+         return 0
+      fi
+   done
+   return 1
+}
+
+# Abort unless a C compiler is available. An optional reason is appended to the
+# error to explain why the caller needs one.
+require_cc() {
+   have_cc >/dev/null && return 0
+   die "no C compiler found (need cc, gcc, or clang)${1:+ - $1}"
+}
+
 # --- scratch dir cleanup ----------------------------------------------------
 
 # Scratch directory a caller may set with `tmp="$(mktemp -d)"`. Removed on any

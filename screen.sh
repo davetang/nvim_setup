@@ -47,16 +47,6 @@ readonly SOURCE_URL="https://ftp.gnu.org/gnu/screen/screen-${VERSION}.tar.gz"
 
 # --- helpers ----------------------------------------------------------------
 
-# Screen builds from source, so make sure a C compiler is available (the other
-# installers only download prebuilt binaries and don't need one).
-require_cc() {
-   if command -v cc >/dev/null 2>&1 || command -v gcc >/dev/null 2>&1 \
-      || command -v clang >/dev/null 2>&1; then
-      return 0
-   fi
-   die "no C compiler found (need cc, gcc, or clang) - Screen is built from source"
-}
-
 # Locate an ncurses/termcap install that ships dev headers, for building against
 # on machines whose system curses has no -dev package (common without root).
 # Prefers an explicit NCURSES_PREFIX, else an active conda env. Prints the
@@ -93,7 +83,7 @@ print_next_steps() {
 main() {
    require tar
    require make
-   require_cc
+   require_cc "Screen is built from source"
 
    msg "GNU Screen : v${VERSION} (built from source)"
    msg "Source     : ${SOURCE_URL}"
