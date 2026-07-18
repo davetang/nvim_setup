@@ -47,8 +47,13 @@ return {
     },
   },
 
+  -- Track master, not the 0.1.8 tag: 0.1.8's preview highlighter calls
+  -- vim.treesitter.language.ft_to_lang, removed in Neovim 0.12 (crashes
+  -- <leader>ff). master uses the current builtin get_lang. The 0.1.x branch
+  -- instead routes through nvim-treesitter's parsers module, which our
+  -- treesitter-on-`main` setup doesn't expose the old way - so master it is.
   {
-    'nvim-telescope/telescope.nvim', tag = '0.1.8',
+    'nvim-telescope/telescope.nvim', branch = 'master',
     dependencies = { 'nvim-lua/plenary.nvim' }
   },
 
