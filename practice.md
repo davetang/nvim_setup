@@ -12,6 +12,7 @@
     - [Quickfix list](#quickfix-list)
     - [Global command (:g)](#global-command-g)
     - [Repeatable change with cgn](#repeatable-change-with-cgn)
+    - [Registers](#registers)
 
 ## Fugitive
 
@@ -47,8 +48,6 @@ The only way to get good with Vim is by practicing. Here are some new shortcuts 
     * `:.,$norm I#` - add `#` to the start of the current line until the end.
     * `:1,.norm I#` - add `#` from the start to the current line.
 * After matching using `*` you can replace all occurrences of the match by using `:%s//replacement/g`; `%` is the shorthand for `1,$`.
-* To replace a word using a yanked word, go to the start of the word and press `cw<C-r>0`, where `<C-r>` is Control+r. This is preferred because it's a repeatable action.
-* Use `"+y` to yank to the clipboard
 * `J` to join two lines together
 * `o` insert a new line after the current one
 * `O` insert a new line before the current one
@@ -290,3 +289,72 @@ print(count)
 total = count * 2
 reset(count)
 ```
+
+### Registers
+
+A register is just a **named clipboard slot**. You address one by typing `"`
+followed by its single-character name *before* a yank/delete/paste, so `"ayy`
+yanks the current line into register `a` and `"ap` pastes it back. In insert or
+command-line mode you pull a register in with `<C-r>` + its name (`<C-r>a`). Run
+`:reg` (or `:registers`) any time to see every register and its contents; `:reg
+a 0 +` shows just those.
+
+The way to remember them is that they fall into a few families:
+
+| Register | What it holds |
+| -------- | ------------- |
+| `"` (unnamed) | The default. **Every** yank, delete, and change lands here, and a bare `p`/`P` reads it. |
+| `"0` (yank) | The last **yank** *only* - deletes never touch it. So after deleting a pile of text, `"0p` still pastes what you last yanked. |
+| `"1`-`"9` | A ring of recent **deletes/changes** of a line or more. `"1` is newest; each new big delete pushes `"1`->`"2`->... |
+| `"-` (small delete) | Deletes/changes of **less than a line** (e.g. `x`, `diw`). |
+| `"a`-`"z` (named) | Yours to fill. `"ay` **overwrites** register `a`; uppercase `"Ay` **appends** to it. |
+| `"_` (black hole) | Discards. `"_dd` deletes a line **without** clobbering the unnamed register. |
+| `"+` / `"*` (clipboard) | System clipboard / primary selection. `"+y` copies, `"+p` pastes (OSC 52 wires this over SSH here). |
+| `"%` `"#` | Current file name / alternate (`<C-^>`) file name. Read-only. |
+| `".` `":` `"/` | Last **inserted** text / last **`:` command** / last **search**. Read-only. |
+| `"=` (expression) | Evaluates an expression: in insert mode `<C-r>=5*8<CR>` types `40`. |
+
+**Grammar** - the same verbs you already use, with a `"{reg}` prefix:
+
+```
+"ayiw     " yank the inner word into register a
+"add      " delete this line into register a
+"ap       " paste register a after the cursor ("aP before)
+<C-r>a    " (insert mode) type register a's contents inline
+```
+
+Practice - **the yank register survives deletes**. Yank `KEEP` (`yy` on it),
+delete the two junk lines with `dd`, then paste what you yanked with `"0p` (a
+plain `p` would paste the last *deleted* line instead):
+
+```
+KEEP
+junk one
+junk two
+```
+
+Practice - **collect lines with uppercase append**. Start register `a` fresh on
+the first keeper with `"ayy`, then add each later keeper with `"Ayy`; finally
+`"ap` dumps them together somewhere else:
+
+```
+alpha
+skip me
+bravo
+skip me
+charlie
+```
+
+Idioms worth burning in:
+
+* `"_dd` - delete into the black hole so the text in `"` / `"0` is preserved
+  (delete the line you're replacing *without* overwriting your yank).
+* `"1p` then `.` - paste your last big delete; each `.` moves on to `"2`, `"3`,
+  ... (use `u.` to page through them one at a time and stop on the right one).
+* `cw<C-r>0` - change a word and drop your last yank in over it; because it's one
+  change it repeats with `.` (the repeatable "replace with the yanked word" idea).
+* `<C-r><C-w>` on the `:` or `/` line - pull the word under the cursor onto the
+  command line, e.g. `:%s/<C-r><C-w>/new/g`.
+* Registers **are** macros: a macro recorded with `qa` lives in `"a` (so `:reg a`
+  shows it, `qaq` clears it), and you can yank edited text back into `"a` to fix
+  a macro.
