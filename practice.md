@@ -10,6 +10,8 @@
     - [Find and till](#find-and-till)
     - [Argument list](#argument-list)
     - [Quickfix list](#quickfix-list)
+    - [Global command (:g)](#global-command-g)
+    - [Repeatable change with cgn](#repeatable-change-with-cgn)
 
 ## Fugitive
 
@@ -228,3 +230,63 @@ One task I regularly perform is updating the version of the GitHub action [check
 3. Open the list with `:copen` and work through each file!
 4. Use `:cnext` or `:cn` to jump to the next match and `:cprev` or `:cp` to jump to the previous match!
 5. Make the change in the match and save; keep going until you're done!
+
+### Global command (:g)
+
+`:g/pattern/cmd` runs an Ex command on **every line matching** `pattern`;
+`:v/pattern/cmd` (short for `:g!`) runs it on every line that does **not** match.
+The default command is `p` (print), so `:g/TODO` on its own just lists the
+matching lines.
+
+Common uses:
+
+* `:g/^$/d` - delete every blank line.
+* `:g/DEBUG/d` - delete every line containing `DEBUG`.
+* `:v/error/d` - keep only the lines containing `error` (delete the rest).
+* `:g/pattern/normal A;` - run a normal-mode edit on each match (here, append a
+  `;`). This is where `:g` and `:norm` combine.
+* `:g/pattern/m$` - move every matching line to the end of the file (`m0` sends
+  them to the top, reversing their order); use `t$` to copy instead of move.
+
+Practice: delete the blank lines (`:g/^$/d`), gather the `error` lines at the
+bottom (`:g/error/m$`), then keep only them (`:v/error/d`).
+
+```
+apple
+banana
+
+error: disk full
+cherry
+
+error: out of memory
+date
+```
+
+### Repeatable change with cgn
+
+`cgn` changes the **next match** of the last search pattern and drops you into
+insert mode; after the first change, `.` repeats it on the following match. It's
+a more surgical, reviewable version of `:%s//new/g` - you `.` the matches you
+want and press `n` to skip the ones you don't.
+
+```
+*        " search for the word under the cursor (also jumps to the next match)
+cgn      " change the next match; type the replacement, then <Esc>
+.        " repeat the change on the next match
+n        " skip a match you want to leave unchanged
+```
+
+`*` jumps forward to the *next* match, so the first `cgn` lands on the second
+occurrence; press `N` right after `*` to step back onto the word you started on
+if you want to change it too. `gn` on its own is a text object over the next
+match, so `dgn` deletes it and `ygn` yanks it (`gN` targets the previous match).
+
+Practice: turn every `count` into `n` - put the cursor on `count`, press `*N`,
+then `cgn` `n` `<Esc>`, and `.` through the rest.
+
+```
+count = count + 1
+print(count)
+total = count * 2
+reset(count)
+```
