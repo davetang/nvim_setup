@@ -30,7 +30,7 @@ esac
 
 # --- tools: does PATH resolve to this bundle's ~/bin? -----------------------
 hdr "Tools (what PATH resolves to)"
-for tool in nvim node npm npx tree-sitter shellcheck shfmt ruff; do
+for tool in nvim node npm npx tree-sitter shellcheck shfmt ruff fzf; do
    resolved="$(command -v "${tool}" 2>/dev/null || true)"
    ours="${BIN_DIR}/${tool}"
    if [[ -z "${resolved}" ]]; then

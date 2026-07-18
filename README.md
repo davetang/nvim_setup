@@ -65,6 +65,7 @@ deps` on its own any time to vet a machine before installing.
 | ShellCheck | `~/bin/shellcheck-<version>/` | `shellcheck` |
 | shfmt | `~/bin/shfmt-<version>/` | `shfmt` |
 | Ruff | `~/bin/ruff-<version>/` | `ruff` |
+| fzf (opt-in) | `~/bin/fzf-<version>/` | `fzf` |
 | bash-language-server | `~/lib/` (npm) | via `~/lib/bin/` |
 | pyright | `~/lib/` (npm) | via `~/lib/bin/` |
 | make-language-server | `~/lib/autotools-language-server/` (venv) | `make-language-server` |
@@ -83,6 +84,7 @@ deps` on its own any time to vet a machine before installing.
 | `make screen` | Build GNU Screen 5.x from source for true 24-bit colour (opt-in; needs a compiler + ncurses) |
 | `make shellcheck` / `make shfmt` | ShellCheck / shfmt for Bash (used by bashls) |
 | `make ruff` | Ruff for Python (lint + format, runs as an LSP) |
+| `make fzf` | fzf command-line fuzzy finder (opt-in; not in `make install`) |
 | `make lsp` | All language servers (`bashls` + `pyright` + `makels`) |
 | `make bashls` | Bash language server |
 | `make pyright` | Python (Pyright) language server |
@@ -101,7 +103,7 @@ Set as environment variables, e.g. `NVIM_VERSION=0.11.3 make nvim`:
 
 | Variable | Effect |
 |----------|--------|
-| `NVIM_VERSION`, `NODE_VERSION`, `TREE_SITTER_VERSION`, `SHELLCHECK_VERSION`, `SHFMT_VERSION`, `RUFF_VERSION`, `SCREEN_VERSION` | Pin a specific version instead of the default |
+| `NVIM_VERSION`, `NODE_VERSION`, `TREE_SITTER_VERSION`, `SHELLCHECK_VERSION`, `SHFMT_VERSION`, `RUFF_VERSION`, `FZF_VERSION`, `SCREEN_VERSION` | Pin a specific version instead of the default |
 | `FORCE=1` | Reinstall even if the versioned directory already exists |
 | `DRY_RUN=1` | Print what would happen without downloading (the binary installers) |
 | `NCURSES_PREFIX` | `make screen`: an ncurses install to build against (else an active conda env, else the system) |
