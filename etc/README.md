@@ -2,6 +2,9 @@
 
 Files for practicing the Neovim setup.
 
+* [aerc.md](aerc.md) - short guide to installing the aerc terminal email client
+  with `apt` and composing mail in Neovim.
+
 ### scan_large_files.py
 
 A practice script for editing, reading with CodeCompanion, and documenting
