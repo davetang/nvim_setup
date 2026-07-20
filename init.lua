@@ -334,3 +334,12 @@ vim.api.nvim_create_user_command(
   end,
   { desc = 'LSP and plugin shortcuts' }
 )
+
+-- custom :Python command
+vim.api.nvim_create_user_command(
+  'Python',
+  function()
+    vim.cmd('vsplit ~/.config/nvim/python.md')
+  end,
+  { desc = 'Python cheatsheet (for R/Perl users)' }
+)

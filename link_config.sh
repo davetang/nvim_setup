@@ -2,8 +2,9 @@
 #
 # link_config.sh - symlink this bundle's Neovim config into ~/.config/nvim.
 #
-# The config sources (init.lua, lazy.lua, spec1.lua, practice.md, cheatsheet.md)
-# live beside this script, so the whole setup directory is self-contained.
+# The config sources (init.lua, lazy.lua, spec1.lua, practice.md, cheatsheet.md,
+# python.md) live beside this script, so the whole setup directory is
+# self-contained.
 # Idempotent, and any real file it would overwrite is backed up first (never
 # clobbered).
 #
@@ -36,6 +37,7 @@ safe_symlink "${HERE}/lazy.lua"      "${NVIM_CONFIG}/lua/config/lazy.lua"
 safe_symlink "${HERE}/spec1.lua"     "${NVIM_CONFIG}/lua/plugins/spec1.lua"
 safe_symlink "${HERE}/practice.md"   "${NVIM_CONFIG}/practice.md"
 safe_symlink "${HERE}/cheatsheet.md" "${NVIM_CONFIG}/cheatsheet.md"
+safe_symlink "${HERE}/python.md"     "${NVIM_CONFIG}/python.md"
 
 if [[ -e "${HOME}/.vimrc" ]]; then
    msg "Note: ~/.vimrc exists but is not used by this Neovim (Lua) setup; left untouched."

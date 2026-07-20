@@ -20,7 +20,7 @@ HPC/cluster nodes. `make install` checks for it up front and won't start without
 it.
 
 - `make setup` — symlinks the config (`init.lua`, `lazy.lua`, `spec1.lua`,
-  `practice.md`, `cheatsheet.md`) into `~/.config/nvim`.
+  `practice.md`, `cheatsheet.md`, `python.md`) into `~/.config/nvim`.
 - `make install` — downloads Neovim, Node.js, tree-sitter, the linters/
   formatters (ShellCheck, shfmt, Ruff) and the language servers into `$HOME`. It
   first runs `make deps` (a read-only preflight) and stops before downloading
