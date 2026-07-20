@@ -121,6 +121,18 @@ vim.lsp.config.bashls = {
 }
 vim.lsp.enable 'bashls'
 
+-- PerlNavigator: Perl language server (syntax check via `perl -c`, plus
+-- completion, hover, and code navigation). Installed via npm as
+-- perlnavigator-server, which drops a `perlnavigator` binary. It also picks up
+-- perlcritic (lint) and perltidy (format) if they are on PATH - those are
+-- optional CPAN modules the bundle does not install; see perl_navigator.sh.
+vim.lsp.config.perlnavigator = {
+  cmd = { my_home .. '/lib/bin/perlnavigator', '--stdio' },
+  filetypes = { 'perl' },
+  root_dir = lsp_root_dir,
+}
+vim.lsp.enable 'perlnavigator'
+
 -- Make language server (from the autotools-language-server package).
 -- https://autotools-language-server.readthedocs.io/en/latest/index.html
 vim.api.nvim_create_autocmd({ "BufEnter" }, {

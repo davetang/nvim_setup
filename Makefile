@@ -25,6 +25,7 @@
 #   make bashls       Install the Bash language server
 #   make pyright      Install the Python (Pyright) language server
 #   make makels       Install the Make/Autotools language server
+#   make perlnavigator Install the Perl (PerlNavigator) language server
 #   make check        Report the setup state (read-only; spot conflicts)
 #   make help         List available targets
 
@@ -41,7 +42,7 @@ ROOT := $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 # keep the build sequential even if invoked with -j.
 .NOTPARALLEL:
 
-.PHONY: help setup deps install nvim node tree-sitter screen shellcheck shfmt ruff fzf lsp bashls pyright makels check
+.PHONY: help setup deps install nvim node tree-sitter screen shellcheck shfmt ruff fzf lsp bashls pyright makels perlnavigator check
 
 help:
 	@echo 'Usage: make <target>'
@@ -62,6 +63,7 @@ help:
 	@echo '  bashls       Install the Bash language server'
 	@echo '  pyright      Install the Python (Pyright) language server'
 	@echo '  makels       Install the Make/Autotools language server'
+	@echo '  perlnavigator Install the Perl (PerlNavigator) language server'
 	@echo '  check        Report the setup state (read-only)'
 	@echo '  help         Show this help'
 
@@ -117,7 +119,7 @@ fzf:
 	$(ROOT)fzf.sh
 
 # All language servers.
-lsp: bashls pyright makels
+lsp: bashls pyright makels perlnavigator
 
 # Individual language servers.
 bashls:
@@ -132,6 +134,12 @@ pyright:
 makels:
 	$(ROOT)deps.sh python
 	$(ROOT)autotools_language_server.sh
+
+# Perl language server (npm-based; provides the `perlnavigator` binary). Uses
+# the system `perl -c` for syntax checking; perlcritic/perltidy (CPAN, optional)
+# are not installed here.
+perlnavigator:
+	$(ROOT)perl_navigator.sh
 
 # Report the state of the setup (read-only): what PATH resolves to, where the
 # config symlinks point, and any legacy files. Handy when migrating.

@@ -69,6 +69,7 @@ deps` on its own any time to vet a machine before installing.
 | bash-language-server | `~/lib/` (npm) | via `~/lib/bin/` |
 | pyright | `~/lib/` (npm) | via `~/lib/bin/` |
 | make-language-server | `~/lib/autotools-language-server/` (venv) | `make-language-server` |
+| PerlNavigator | `~/lib/` (npm) | via `~/lib/bin/` |
 | Neovim config | symlinks in `~/.config/nvim/` → this bundle | — |
 
 ## Make targets
@@ -85,10 +86,11 @@ deps` on its own any time to vet a machine before installing.
 | `make shellcheck` / `make shfmt` | ShellCheck / shfmt for Bash (used by bashls) |
 | `make ruff` | Ruff for Python (lint + format, runs as an LSP) |
 | `make fzf` | fzf command-line fuzzy finder (opt-in; not in `make install`) |
-| `make lsp` | All language servers (`bashls` + `pyright` + `makels`) |
+| `make lsp` | All language servers (`bashls` + `pyright` + `makels` + `perlnavigator`) |
 | `make bashls` | Bash language server |
 | `make pyright` | Python (Pyright) language server |
 | `make makels` | Make/Autotools language server |
+| `make perlnavigator` | Perl (PerlNavigator) language server |
 | `make check` | Report the setup state (read-only) — PATH, config symlinks, legacy files |
 | `make help` | List targets |
 
@@ -144,12 +146,17 @@ Notable things the config (`init.lua`) sets up — see the full keymap list with
   completion in every filetype — the menu pops up as you type. `<Tab>`/`<S-Tab>`
   select, `<CR>` confirms. (coc.nvim was replaced by the built-in completion.)
 - **Language servers.** pyright + Ruff for Python (types + lint/format), bashls
-  for shell (which picks up ShellCheck and shfmt from `~/bin`), and
-  make-language-server for Makefiles. Each roots at the nearest `.git`,
-  **falling back to the file's own directory**, so cross-file features work even
-  outside a repo — e.g. `gd` on a Bash function jumps to its definition in a
-  sibling file (bashls also sets `includeAllWorkspaceSymbols` so it looks across
-  the whole workspace, not only `source`d files).
+  for shell (which picks up ShellCheck and shfmt from `~/bin`),
+  make-language-server for Makefiles, and PerlNavigator for Perl. Each roots at
+  the nearest `.git`, **falling back to the file's own directory**, so cross-file
+  features work even outside a repo — e.g. `gd` on a Bash function jumps to its
+  definition in a sibling file (bashls also sets `includeAllWorkspaceSymbols` so
+  it looks across the whole workspace, not only `source`d files). PerlNavigator
+  syntax-checks with the **system `perl -c`** (so a `perl` on `PATH` is all it
+  needs) and, *optionally*, uses **perlcritic** for linting and **perltidy** for
+  formatting if they are on `PATH` — those are CPAN modules (`Perl::Critic`,
+  `Perl::Tidy`) the bundle does **not** install; add them no-root with `cpanm
+  --local-lib` if you want lint/format.
 - **Diagnostics.** Errors and warnings show inline (virtual text) at the end of
   the flagged line, so you can read them without moving onto each one; `<leader>d`
   opens the full message in a float and `]d` / `[d` jump between them. When a line
