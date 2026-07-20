@@ -17,6 +17,45 @@ Open it anytime with `:Cheatsheet`.
 * `g` can be thought of as **go**; `gg` go to the top of the file or `gd` go to where a variable is defined
     * `gp` can also paste; see `:help g`
 
+## Visual selection
+
+* A selection is just a **range** the next command acts on.
+* Select with `v` (charwise), `V` (linewise), or `<C-v>` (block).
+* **Text objects** select by structure:
+    * `i` = inner (contents only), `a` = around (include the delimiters):
+
+| Key                     | Selects                                                                |
+|-------------------------|------------------------------------------------------------------------|
+| `vi(` `vi{` `vi[` `vi<` | inside brackets `va(` etc. keeps the brackets (`b` = `()`, `B` = `{}`) |
+| `vi"` `vi'` `` vi` ``   | inside quotes                                                          |
+| `vit`                   | inside an HTML/XML tag                                                 |
+
+The same objects pair with any operator: `ci"` change inside quotes, `di(` delete inside parens, `yi{` yank inside braces.
+
+Once something is selected:
+
+| Key             | Action                                                                             |
+|-----------------|------------------------------------------------------------------------------------|
+| `d` / `c` / `y` | Delete / change / yank                                                             |
+| `p`             | Paste over it: replaces the selection (yank one word, select another, `p` to swap) |
+| `u` / `U` / `~` | Lower- / upper-case / toggle case                                                  |
+| `>` / `<` / `=` | Indent right / left / re-indent                                                    |
+| `r{char}`       | Replace **every** character with `{char}`                                          |
+| `J`             | Join the lines (`gJ` = no space)                                                   |
+| `gq`            | Reflow / wrap to `textwidth`                                                       |
+| `g<C-a>`        | Turn selected lines into an incrementing `1, 2, 3…` sequence                       |
+| `o`             | Jump to the other end, to extend the selection from there                          |
+| `zf`            | Fold the selection away                                                            |
+
+**Run a command on just the selection**:
+
+| Key | Action                                                                       |
+|-----|------------------------------------------------------------------------------|
+| `:` | Opens `:'<,'>` — e.g. `:'<,'>s/foo/bar/g`, `:'<,'>sort u`, `:'<,'>normal A;` |
+ | `!` | Filter the lines through a shell command: `!sort -u`, `!column -t`, `!jq .` |
+
+**Visual block** (`<C-v>`) edits many lines at once: `I{text}<Esc>` inserts before every line, `A{text}<Esc>` appends after (use `$` first to append at each line's end).
+
 ## LSP (code intelligence)
 
 | Key | Action |
