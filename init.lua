@@ -183,6 +183,14 @@ vim.api.nvim_create_autocmd('TextChangedI', {
   callback = function()
     if vim.bo.buftype ~= '' then return end     -- skip prompt/special buffers
     if vim.fn.pumvisible() == 1 then return end  -- a menu is already open
+    -- If an attached LSP already provides completion (e.g. Python, bash), let
+    -- its autotrigger own the menu. Firing keyword <C-n> here too makes two
+    -- sources fight over the single builtin menu, which resets the completion
+    -- leader and swallows what you're typing. Markdown has no LSP client, so
+    -- this loop finds nothing and the <C-n> below still runs there as before.
+    for _, c in pairs(vim.lsp.get_clients({ bufnr = 0 })) do
+      if c.server_capabilities.completionProvider then return end
+    end
     local col = vim.fn.col('.') - 1
     if col > 0 and vim.fn.getline('.'):sub(col, col):match('[%w_]') then
       vim.api.nvim_feedkeys(vim.keycode('<C-n>'), 'n', false)
