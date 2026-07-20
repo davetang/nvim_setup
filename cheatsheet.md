@@ -12,6 +12,10 @@ Open it anytime with `:Cheatsheet`.
     * Cycle between the splits: `Ctrl-w w`
     * Move to the left split: `Ctrl-w h`
     * Move to the right split: `Ctrl-w l`
+* Use `gcc` to toggle commenting; this will be specific to the file type
+    * Works with visual selection and `gc`
+* `g` can be thought of as **go**; `gg` go to the top of the file or `gd` go to where a variable is defined
+    * `gp` can also paste; see `:help g`
 
 ## LSP (code intelligence)
 
