@@ -80,6 +80,7 @@ this is a sentence, which is for testing, and practicing.
 * `dt"` (delete till ") to remove everything until `"`. To do this in reverse or backwards, use `T` instead of `t`.
 * `di"` deletes inside the quotation marks (works even if cursor is at start of line)
 * `ci"` changes inside the quotation marks, then enter insert mode. Also works  with `)`, `}`, and ```.
+* `vi"` select inside the quotation marks and `va"` select around the quotation marks.
 
 ```
 left spacer "This is sentence is between double quotes" right spacer "another"
