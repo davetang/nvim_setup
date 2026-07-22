@@ -29,7 +29,8 @@ it.
 The installers only *warn* about `PATH`; adding `~/bin` to it is the one manual
 step. On first launch, `nvim` installs its plugins via lazy.nvim (needs network
 and a C compiler for the Treesitter parsers) — if highlighting errors, run
-`:TSUpdate` and restart once the parsers finish building.
+`:TSUpdate` and restart once the parsers finish building. If a parser fails to
+install outright, see [Troubleshooting](#troubleshooting).
 
 ## Requirements
 
@@ -188,6 +189,31 @@ Notable things the config (`init.lua`) sets up — see the full keymap list with
   a **full URL** (`http://host:port`, *with* the scheme — a bare `host:port`
   won't work) and `export` it from your shell rc so nvim inherits it at launch
   (restart nvim after changing it). See `:Cheatsheet` for the in-chat keys.
+
+## Troubleshooting
+
+- **A parser fails to install with `mv: cannot stat
+  'tree-sitter-<lang>-tmp/tree-sitter-<lang>-master'`** — reported by
+  nvim-treesitter as *"Failed to execute the following command"*. The plugin is
+  stale. Older versions fetched `archive/master.tar.gz` from the grammar's repo
+  and then moved `tree-sitter-<lang>-master` out of the tarball; several grammar
+  repos have since renamed their default branch to `main`, and GitHub serves the
+  old name as a **redirect rather than a 404** — so the download succeeds, but
+  the directory inside is `tree-sitter-<lang>-main` and the move finds nothing.
+  (That mismatch is why the error looks so odd: nothing failed to *download*.)
+  Current nvim-treesitter pins each grammar to a commit, which sidesteps branch
+  names entirely. Fix by updating the plugin, then reinstalling the parser:
+
+  ```vim
+  :Lazy update nvim-treesitter
+  :TSInstall lua
+  ```
+
+  If a `lazy-lock.json` is holding nvim-treesitter back, `:Lazy update` rewrites
+  it — check the Lazy UI shows the plugin actually moving. No manual cleanup is
+  needed: the leftover `tree-sitter-<lang>-tmp` directory under
+  `~/.local/share/nvim` is cleared at the start of the next attempt. If several
+  parsers were resolving to `master`, the one update fixes them all.
 
 ## Testing in Docker
 
