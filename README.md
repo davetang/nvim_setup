@@ -215,6 +215,25 @@ Notable things the config (`init.lua`) sets up — see the full keymap list with
   `~/.local/share/nvim` is cleared at the start of the next attempt. If several
   parsers were resolving to `master`, the one update fixes them all.
 
+- **`make-language-server` starts and immediately dies with `ModuleNotFoundError:
+  No module named 'lsp_tree_sitter.diagnose'`** — seen in `:LspLog` (or
+  `~/.local/state/nvim/lsp.log`) after opening a `Makefile`. The server's own
+  dependency range is too loose: it needs `lsp_tree_sitter.{diagnose,finders}`
+  but asks only for `lsp-tree-sitter>=0.1.0`, and 0.2.0 (2026-07-19) reorganised
+  those modules away. `make makels` therefore pins **both** the server and that
+  dependency (see the header comment in `autotools_language_server.sh`). If you
+  hit this, your venv predates the pins — rebuild it:
+
+  ```sh
+  FORCE=1 make makels
+  ```
+
+  **`FORCE=1` is required.** A plain `make makels` checks only whether the
+  binaries exist, and they do, so it reports "already exists; skipping install"
+  and leaves the bad dependency in place. The installer now also imports the
+  server module after installing, so a version mismatch like this fails loudly
+  during `make makels` rather than silently at editor startup.
+
 ## Testing in Docker
 
 Build the Ubuntu image from

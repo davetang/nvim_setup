@@ -216,13 +216,16 @@ install_npm_server() {
 # venv, so they run without needing anything on PATH. Requires a venv-capable
 # python3 (conda's works; a bare Debian/Ubuntu python3 needs python3-venv).
 #
-#   install_pip_server <package> <venv-name> <binary>...
-#     package     pip package to install
+#   install_pip_server <packages> <venv-name> <import> <binary>...
+#     packages    pip requirement(s) to install, space-separated in one argument
+#                 - a list so a dependency can be pinned alongside the package
+#                 when upstream's own constraint is too loose
 #     venv-name   directory name for the venv under ${LIB_DIR}
+#     import      module to import as a smoke test (see below); "" to skip
 #     binary...   executable(s) the package provides to expose in ${BIN_DIR}
 install_pip_server() {
-   local package="$1" venv_name="$2"
-   shift 2
+   local packages="$1" venv_name="$2" smoke="$3"
+   shift 3
    local bin_dir="${BIN_DIR:-${HOME}/bin}"
    local lib_dir="${LIB_DIR:-${HOME}/lib}"
    local venv="${lib_dir}/${venv_name}"
@@ -233,20 +236,46 @@ install_pip_server() {
 
    mkdir -p "${bin_dir}"
 
-   if [[ -d "${venv}" && -z "${FORCE:-}" ]]; then
+   # Count the venv as installed only if every binary is actually present. A run
+   # that died partway - or a release that renamed its console scripts - leaves
+   # the directory behind, and skipping on the directory alone makes that state
+   # sticky: every rerun would skip the install and then fail the check below.
+   local binary missing=""
+   for binary in "$@"; do
+      [[ -x "${venv}/bin/${binary}" ]] || missing+=" ${binary}"
+   done
+
+   if [[ -d "${venv}" && -z "${missing}" && -z "${FORCE:-}" ]]; then
       msg "${venv} already exists; skipping install (set FORCE=1 to reinstall)."
    else
+      if [[ -d "${venv}" && -n "${missing}" ]]; then
+         msg "${venv} exists but is missing:${missing} - reinstalling."
+      fi
       msg "Creating virtualenv at ${venv} ..."
       rm -rf "${venv}"
       python3 -m venv "${venv}"
-      msg "Installing ${package} ..."
-      "${venv}/bin/pip" install --quiet "${package}"
+      msg "Installing ${packages} ..."
+      # Unquoted on purpose: ${packages} is a list of pip requirements.
+      # shellcheck disable=SC2086
+      "${venv}/bin/pip" install --quiet ${packages}
    fi
 
-   local binary exe
+   # A binary on disk does not mean the server runs. These packages declare loose
+   # dependency ranges, so pip can resolve a dependency whose API has since moved
+   # on, and the entry point defers its heavy imports until after argument
+   # parsing - so even `--version` succeeds and the breakage only surfaces as an
+   # ImportError when the editor spawns the server. Import the module the entry
+   # point defers to, so that failure lands here instead. Python's traceback goes
+   # to stderr, naming the module that is actually missing.
+   if [[ -n "${smoke}" ]]; then
+      "${venv}/bin/python" -c "import ${smoke}" \
+         || die "installed ${packages}, but 'import ${smoke}' fails in ${venv} - the pinned versions are probably incompatible (traceback above)"
+   fi
+
+   local exe
    for binary in "$@"; do
       exe="${venv}/bin/${binary}"
-      [[ -x "${exe}" ]] || die "expected ${exe} after installing ${package}, but it is missing"
+      [[ -x "${exe}" ]] || die "expected ${exe} after installing ${packages}, but it is missing"
       ln -sf "${exe}" "${bin_dir}/${binary}"
       msg "Linked ${bin_dir}/${binary} -> ${exe}"
    done
