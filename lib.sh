@@ -38,7 +38,7 @@ download() {
 
 # Print the path to a C compiler (cc, gcc, or clang) if one is on PATH and
 # return 0; print nothing and return 1 otherwise. nvim-treesitter builds its
-# parsers with it, and the from-source installers (screen) need it too.
+# parsers with it.
 have_cc() {
    local c p
    for c in cc gcc clang; do
@@ -48,13 +48,6 @@ have_cc() {
       fi
    done
    return 1
-}
-
-# Abort unless a C compiler is available. An optional reason is appended to the
-# error to explain why the caller needs one.
-require_cc() {
-   have_cc >/dev/null && return 0
-   die "no C compiler found (need cc, gcc, or clang)${1:+ - $1}"
 }
 
 # --- scratch dir cleanup ----------------------------------------------------
@@ -107,9 +100,9 @@ stage_tarball_strip() {
 }
 
 # Download a pinned release into a versioned dir under ~/bin and symlink the
-# executables it provides into ~/bin - the shared skeleton behind nvim.sh,
-# node.sh, shellcheck.sh, shfmt.sh and ruff.sh, which differ only in the asset
-# name, how the download is unpacked, and what they report.
+# executables it provides into ~/bin - the shared skeleton behind nvim.sh and
+# node.sh, which differ only in the asset name, how the download is unpacked,
+# and what they report.
 #
 #   install_versioned_tool <label> <version> <url> <install_dir> \
 #                          <stage_fn> <verify_fn> <linkspec>...

@@ -2,8 +2,8 @@
 #
 # The whole thing is:  make setup && make install
 #   setup    links this bundle's Neovim config into ~/.config/nvim
-#   install  downloads Neovim, Node, tree-sitter, the linters/formatters and
-#            the language servers into $HOME (no root)
+#   install  downloads Neovim, Node, tree-sitter and the language servers into
+#            $HOME (no root)
 #
 # This directory is self-contained: copy or move it anywhere and both halves
 # still work, because every path is resolved relative to this Makefile (not the
@@ -16,11 +16,6 @@
 #   make nvim         Install Neovim into ~/bin/nvim-<version>
 #   make node         Install Node.js into ~/bin/node-<version>
 #   make tree-sitter  Install the tree-sitter CLI (conda-forge) into ~/bin
-#   make screen       Build GNU Screen 5.x from source (true 24-bit colour)
-#   make shellcheck   Install ShellCheck (Bash linting, used by bashls)
-#   make shfmt        Install shfmt (Bash formatting, used by bashls)
-#   make ruff         Install Ruff (Python lint + format, run as an LSP)
-#   make fzf          Install fzf (command-line fuzzy finder) into ~/bin
 #   make lsp          Install all language servers into ~/lib
 #   make bashls       Install the Bash language server
 #   make pyright      Install the Python (Pyright) language server
@@ -42,7 +37,7 @@ ROOT := $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 # keep the build sequential even if invoked with -j.
 .NOTPARALLEL:
 
-.PHONY: help setup deps install nvim node tree-sitter screen shellcheck shfmt ruff fzf lsp bashls pyright makels perlnavigator check
+.PHONY: help setup deps install nvim node tree-sitter lsp bashls pyright makels perlnavigator check
 
 help:
 	@echo 'Usage: make <target>'
@@ -54,11 +49,6 @@ help:
 	@echo '  nvim         Install Neovim into ~/bin'
 	@echo '  node         Install Node.js into ~/bin'
 	@echo '  tree-sitter  Install the tree-sitter CLI (conda-forge) into ~/bin'
-	@echo '  screen       Build GNU Screen 5.x from source (true 24-bit colour)'
-	@echo '  shellcheck   Install ShellCheck (Bash linting, used by bashls)'
-	@echo '  shfmt        Install shfmt (Bash formatting, used by bashls)'
-	@echo '  ruff         Install Ruff (Python lint + format, run as an LSP)'
-	@echo '  fzf          Install fzf (command-line fuzzy finder) into ~/bin'
 	@echo '  lsp          Install all language servers into ~/lib'
 	@echo '  bashls       Install the Bash language server'
 	@echo '  pyright      Install the Python (Pyright) language server'
@@ -80,7 +70,7 @@ deps:
 
 # Install everything, in order (Node must precede the language servers). `deps`
 # runs first: if any prerequisite is missing, install does not start at all.
-install: deps nvim node tree-sitter shellcheck shfmt ruff lsp
+install: deps nvim node tree-sitter lsp
 
 # Download and install Neovim locally (auto-detects OS/architecture).
 nvim:
@@ -94,29 +84,6 @@ node:
 # Installed from conda-forge into the active conda env, so it runs on old glibc.
 tree-sitter:
 	$(ROOT)tree_sitter.sh
-
-# GNU Screen 5.x built from source - only needed for true 24-bit colour through
-# screen (4.x down-samples termguicolors to 256). Optional; not part of
-# `make install`. Needs a C compiler, make, and ncurses/termcap.
-screen:
-	$(ROOT)screen.sh
-
-# ShellCheck - Bash linter that bash-language-server picks up automatically.
-shellcheck:
-	$(ROOT)shellcheck.sh
-
-# shfmt - Bash formatter that bash-language-server uses for formatting.
-shfmt:
-	$(ROOT)shfmt.sh
-
-# Ruff - Python linter/formatter, wired up as a language server in init.lua.
-ruff:
-	$(ROOT)ruff.sh
-
-# fzf - command-line fuzzy finder. Standalone convenience; nothing in the
-# Neovim config depends on it, so (like screen) it is opt-in, not in `install`.
-fzf:
-	$(ROOT)fzf.sh
 
 # All language servers.
 lsp: bashls pyright makels perlnavigator

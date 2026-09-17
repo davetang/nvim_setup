@@ -52,9 +52,9 @@ vim.opt.undofile = true
 -- Solarized (dark) via maxmx03/solarized.nvim - a modern Lua theme that needs
 -- true 24-bit colour. termguicolors is on unconditionally now that every
 -- workstation runs a truecolor-capable terminal and GNU screen 5.x (4.x
--- down-samples to 256; see the README colour note and `make screen`). Set
--- before the scheme loads; pcall so a fresh install (before the plugin exists)
--- doesn't error.
+-- down-samples to 256; see the README colour note - terminal_setup's `make
+-- screen` builds 5.x locally). Set before the scheme loads; pcall so a fresh
+-- install (before the plugin exists) doesn't error.
 vim.opt.termguicolors = true
 vim.opt.background = 'dark'
 pcall(function()

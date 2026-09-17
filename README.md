@@ -21,10 +21,10 @@ it.
 
 - `make setup` — symlinks the config (`init.lua`, `lazy.lua`, `spec1.lua`,
   `practice.md`, `cheatsheet.md`, `python.md`) into `~/.config/nvim`.
-- `make install` — downloads Neovim, Node.js, tree-sitter, the linters/
-  formatters (ShellCheck, shfmt, Ruff) and the language servers into `$HOME`. It
-  first runs `make deps` (a read-only preflight) and stops before downloading
-  anything if a prerequisite — e.g. Python 3.11+ — is missing.
+- `make install` — downloads Neovim, Node.js, tree-sitter and the language
+  servers into `$HOME`. It first runs `make deps` (a read-only preflight) and
+  stops before downloading anything if a prerequisite — e.g. Python 3.11+ — is
+  missing.
 
 The installers only *warn* about `PATH`; adding `~/bin` to it is the one manual
 step. On first launch, `nvim` installs its plugins via lazy.nvim (needs network
@@ -56,6 +56,35 @@ deps` on its own any time to vet a machine before installing.
 - Node.js and the tree-sitter CLI are installed by the bundle (tree-sitter from
   conda-forge), so they are *not* prerequisites
 
+## Companion repo: terminal_setup
+
+Four of the tools this config uses are installed by
+[`terminal_setup`](https://github.com/davetang/terminal_setup), the no-root
+installer for the general terminal toolchain, not by this bundle:
+
+| Tool | Used by |
+|------|---------|
+| ShellCheck | bash-language-server, for diagnostics |
+| shfmt | bash-language-server, for `<leader>f` formatting |
+| Ruff | the `ruff` language server (Python lint + format) |
+| GNU Screen 5 | 24-bit colour through a multiplexer (`termguicolors`) |
+
+It installs into the same `~/bin`, so there is nothing to configure here:
+
+```sh
+git clone https://github.com/davetang/terminal_setup
+cd terminal_setup && make shellcheck shfmt ruff    # or make install for the lot
+```
+
+(fzf is not in that list: nothing in the Neovim config uses it. It is simply
+available from terminal_setup now, whose `make setup` also wires up the
+`Ctrl-T`/`Ctrl-R` shell keybindings — a manual step in the old `fzf.sh`.)
+
+Without them, `make install` still gives a working editor: pyright, bashls and
+the other servers start normally. What you lose is **lint and format** — bashls
+reports no ShellCheck diagnostics and cannot format, and the `ruff` server fails
+to start (visible in `:LspLog`) so `<leader>f` does nothing on Python.
+
 ## What gets installed, and where
 
 | Component | Location | Exposed in `~/bin` |
@@ -63,10 +92,6 @@ deps` on its own any time to vet a machine before installing.
 | Neovim | `~/bin/nvim-<version>/` | `nvim` |
 | Node.js | `~/bin/node-<version>/` | `node`, `npm`, `npx` |
 | tree-sitter CLI | `~/bin/tree-sitter-<version>/` | `tree-sitter` |
-| ShellCheck | `~/bin/shellcheck-<version>/` | `shellcheck` |
-| shfmt | `~/bin/shfmt-<version>/` | `shfmt` |
-| Ruff | `~/bin/ruff-<version>/` | `ruff` |
-| fzf (opt-in) | `~/bin/fzf-<version>/` | `fzf` |
 | bash-language-server | `~/lib/` (npm) | via `~/lib/bin/` |
 | pyright | `~/lib/` (npm) | via `~/lib/bin/` |
 | make-language-server | `~/lib/autotools-language-server/` (venv) | `make-language-server` |
@@ -79,14 +104,10 @@ deps` on its own any time to vet a machine before installing.
 |--------|------|
 | `make setup` | Symlink the Neovim config into `~/.config/nvim` |
 | `make deps` | Preflight — verify all prerequisites are present (read-only); `make install` runs it first and won't start if any is missing |
-| `make install` | Everything (Neovim, Node, tree-sitter, tools, servers) |
+| `make install` | Everything (Neovim, Node, tree-sitter, language servers) |
 | `make nvim` | Install Neovim into `~/bin` |
 | `make node` | Install Node.js into `~/bin` |
 | `make tree-sitter` | Install the tree-sitter CLI from conda-forge into `~/bin` |
-| `make screen` | Build GNU Screen 5.x from source for true 24-bit colour (opt-in; needs a compiler + ncurses) |
-| `make shellcheck` / `make shfmt` | ShellCheck / shfmt for Bash (used by bashls) |
-| `make ruff` | Ruff for Python (lint + format, runs as an LSP) |
-| `make fzf` | fzf command-line fuzzy finder (opt-in; not in `make install`) |
 | `make lsp` | All language servers (`bashls` + `pyright` + `makels` + `perlnavigator`) |
 | `make bashls` | Bash language server |
 | `make pyright` | Python (Pyright) language server |
@@ -106,10 +127,9 @@ Set as environment variables, e.g. `NVIM_VERSION=0.11.3 make nvim`:
 
 | Variable | Effect |
 |----------|--------|
-| `NVIM_VERSION`, `NODE_VERSION`, `TREE_SITTER_VERSION`, `SHELLCHECK_VERSION`, `SHFMT_VERSION`, `RUFF_VERSION`, `FZF_VERSION`, `SCREEN_VERSION` | Pin a specific version instead of the default |
+| `NVIM_VERSION`, `NODE_VERSION`, `TREE_SITTER_VERSION` | Pin a specific version instead of the default |
 | `FORCE=1` | Reinstall even if the versioned directory already exists |
 | `DRY_RUN=1` | Print what would happen without downloading (the binary installers) |
-| `NCURSES_PREFIX` | `make screen`: an ncurses install to build against (else an active conda env, else the system) |
 | `BIN_DIR` / `LIB_DIR` | Override the install prefixes (default `~/bin` / `~/lib`) |
 
 ## Notes
@@ -141,23 +161,25 @@ Notable things the config (`init.lua`) sets up — see the full keymap list with
   24-bit: a truecolor terminal, and, if you use a multiplexer, one that passes
   it through. GNU `screen` only does since **5.0** (`truecolor on` in
   `~/.screenrc`, in a *fresh* session); 4.x silently down-samples to 256 — if
-  your `screen` is older, **`make screen`** builds 5.x locally under `~/bin`.
+  your `screen` is older, terminal_setup's **`make screen`** builds 5.x locally
+  under `~/bin`.
   (tmux carries truecolor with the usual `Tc`/`RGB` terminfo override.)
 - **Completion.** Native LSP completion (autotriggered) plus buffer-word
   completion in every filetype — the menu pops up as you type. `<Tab>`/`<S-Tab>`
   select, `<CR>` confirms. (coc.nvim was replaced by the built-in completion.)
 - **Language servers.** pyright + Ruff for Python (types + lint/format), bashls
-  for shell (which picks up ShellCheck and shfmt from `~/bin`),
-  make-language-server for Makefiles, and PerlNavigator for Perl. Each roots at
-  the nearest `.git`, **falling back to the file's own directory**, so cross-file
-  features work even outside a repo — e.g. `gd` on a Bash function jumps to its
-  definition in a sibling file (bashls also sets `includeAllWorkspaceSymbols` so
-  it looks across the whole workspace, not only `source`d files). PerlNavigator
-  syntax-checks with the **system `perl -c`** (so a `perl` on `PATH` is all it
-  needs) and, *optionally*, uses **perlcritic** for linting and **perltidy** for
-  formatting if they are on `PATH` — those are CPAN modules (`Perl::Critic`,
-  `Perl::Tidy`) the bundle does **not** install; add them no-root with `cpanm
-  --local-lib` if you want lint/format.
+  for shell (which picks up ShellCheck and shfmt from `~/bin`, installed by
+  terminal_setup), make-language-server for Makefiles, and PerlNavigator for
+  Perl. Each roots at the nearest `.git`, **falling back to the file's own
+  directory**, so cross-file features work even outside a repo — e.g. `gd` on a
+  Bash function jumps to its definition in a sibling file (bashls also sets
+  `includeAllWorkspaceSymbols` so it looks across the whole workspace, not only
+  `source`d files). PerlNavigator syntax-checks with the **system `perl -c`**
+  (so a `perl` on `PATH` is all it needs) and, *optionally*, uses
+  **perlcritic** for linting and **perltidy** for formatting if they are on
+  `PATH` — those are CPAN modules (`Perl::Critic`, `Perl::Tidy`) the bundle
+  does **not** install; add them no-root with `cpanm --local-lib` if you want
+  lint/format.
 - **Diagnostics.** Errors and warnings show inline (virtual text) at the end of
   the flagged line, so you can read them without moving onto each one; `<leader>d`
   opens the full message in a float and `]d` / `[d` jump between them. When a line

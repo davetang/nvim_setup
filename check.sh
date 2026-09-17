@@ -29,8 +29,10 @@ case ":${PATH}:" in
 esac
 
 # --- tools: does PATH resolve to this bundle's ~/bin? -----------------------
+# shellcheck, shfmt, ruff, fzf and screen live there too, installed by
+# terminal_setup rather than by this bundle.
 hdr "Tools (what PATH resolves to)"
-for tool in nvim node npm npx tree-sitter shellcheck shfmt ruff fzf; do
+for tool in nvim node npm npx tree-sitter shellcheck shfmt ruff fzf screen; do
    resolved="$(command -v "${tool}" 2>/dev/null || true)"
    ours="${BIN_DIR}/${tool}"
    if [[ -z "${resolved}" ]]; then
