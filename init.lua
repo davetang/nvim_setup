@@ -70,6 +70,12 @@ vim.g.clipboard = {
   copy = { ['+'] = osc52.copy('+'), ['*'] = osc52.copy('*') },
   paste = { ['+'] = osc52.paste('+'), ['*'] = osc52.paste('*') },
 }
+-- With g:clipboard set above, Nvim's own OSC 52 detection (`:h g:termfeatures`)
+-- has nothing to decide, so turn it off. Its fallback query (XTGETTCAP for
+-- "Ms") is wrapped in ESC P ... ESC \, which GNU screen takes as "pass this to
+-- the outer terminal" - so the terminal printed "+q4D73" at the top of the
+-- screen on every start inside screen.
+vim.g.termfeatures = vim.tbl_extend('force', vim.g.termfeatures or {}, { osc52 = false })
 
 -- Syntax highlighting and filetype plugins
 vim.cmd('syntax enable')
