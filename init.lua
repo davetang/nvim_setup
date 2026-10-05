@@ -391,6 +391,39 @@ vim.keymap.set('v', '<leader>ca', '<cmd>CodeCompanionChat Add<cr>', { desc = 'Co
 -- range is inserted automatically, so it targets the selection.
 vim.keymap.set({ 'n', 'v' }, '<leader>ci', ':CodeCompanion ', { desc = 'CodeCompanion inline prompt' })
 
+-- Python console (iron.nvim, in spec1.lua) on the same local-leader keys
+-- R.nvim uses for R, so one set of habits works in both languages: \rf starts
+-- the console on the right, then send code to it a line, paragraph,
+-- selection or `# %%` cell at a time. Sending also starts the console if it
+-- isn't running. Buffer-local, so R.nvim's keys in R files are untouched.
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'python',
+  callback = function(args)
+    local function map(mode, lhs, rhs, desc)
+      vim.keymap.set(mode, lhs, rhs, { buffer = args.buf, desc = desc })
+    end
+    local function iron() return require('iron.core') end
+    -- send `fn(<expression under the cursor>)`, e.g. help(np.mean)
+    local function call_on_cursor(fn)
+      return function() iron().send('python', fn .. '(' .. vim.fn.expand('<cexpr>') .. ')') end
+    end
+    map('n', '<LocalLeader>rf', function() iron().repl_for('python') end, 'Start the Python console')
+    map('n', '<LocalLeader>rq', function() iron().close_repl('python') end, 'Quit the Python console')
+    map('n', '<LocalLeader>l', function() iron().send_line() end, 'Send the line')
+    map('n', '<LocalLeader>d', function()
+      iron().send_line()
+      vim.fn.search([[^\s*\S]], 'W')  -- next non-blank line
+    end, 'Send the line and move down')
+    map('x', '<LocalLeader>ss', function() iron().visual_send() end, 'Send the selection')
+    map('n', '<LocalLeader>pp', function() iron().send_paragraph() end, 'Send the paragraph')
+    map('n', '<LocalLeader>aa', function() iron().send_file('python') end, 'Send the whole file')
+    map('n', '<LocalLeader>cc', function() iron().send_code_block(false) end, 'Send the # %% cell')
+    map('n', '<LocalLeader>cd', function() iron().send_code_block(true) end, 'Send the # %% cell and move to the next')
+    map('n', '<LocalLeader>rh', call_on_cursor('help'), 'help() on the object under the cursor')
+    map('n', '<LocalLeader>rp', call_on_cursor('print'), 'print() the object under the cursor')
+  end,
+})
+
 -- custom :Practice command
 vim.api.nvim_create_user_command(
   'Practice',

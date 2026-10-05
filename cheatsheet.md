@@ -261,6 +261,29 @@ Uses the local leader (`\`). A few common ones — `:RMapsDesc` lists them all:
 Plots: R has no display on a remote box, so run `httpgd::hgd()`, forward the
 port it prints (`ssh -L`), and open the URL locally.
 
+## Python console (iron.nvim)
+
+The R.nvim keys above work in Python files too, sending code to a console on
+the right. It runs **IPython** when the project's environment has it (`uv add
+--dev ipython`, then start nvim with `uv run nvim` or from an activated venv),
+otherwise plain `python3`. Sending code starts the console if it isn't running.
+
+| Key | Action |
+|-----|--------|
+| `\rf` | Start the Python console |
+| `\rq` | Quit it |
+| `\l` | Send the current line |
+| `\d` | Send the current line and move to the next non-blank one |
+| `\ss` | Send the selection (visual mode) |
+| `\pp` | Send the current paragraph (stops at blank lines, so not for functions with blank lines in them: select those, or use a cell) |
+| `\aa` | Send the whole file |
+| `\cc` / `\cd` | Send the current `# %%` cell / and move to the next |
+| `\rh` | `help()` on the object under the cursor (`help(math.sqrt)` with the cursor on `sqrt`) |
+| `\rp` | `print()` the object under the cursor |
+
+`<C-w>l` moves into the console (then `i` to type in it, `<C-\><C-n>` to get
+back to normal mode); `:IronRestart` restarts it.
+
 ## Plugins & health
 
 | Command | Action |

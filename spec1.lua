@@ -144,6 +144,48 @@ return {
     "R-nvim/R.nvim",
   },
 
+  -- https://github.com/Vigemus/iron.nvim
+  -- A Python console beside your script, used like R.nvim: init.lua gives
+  -- Python buffers the same local-leader keys (\rf starts it, \d sends the
+  -- line, \pp the paragraph, \cc the `# %%` cell; see :Cheatsheet). Runs
+  -- IPython when the project's environment has it (start nvim with `uv run
+  -- nvim`, or from an activated venv), otherwise plain python3. Loads the
+  -- first time one of those keys is used.
+  {
+    "Vigemus/iron.nvim",
+    lazy = true,
+    cmd = { "IronRepl", "IronRestart", "IronFocus", "IronHide" },
+    config = function()
+      require("iron.core").setup({
+        config = {
+          scratch_repl = true,
+          repl_definition = {
+            python = {
+              command = function()
+                if vim.fn.executable("ipython") == 1 then
+                  -- No "really exit?" prompt, so \rq quits at once.
+                  return { "ipython", "--no-autoindent", "--no-confirm-exit" }
+                end
+                return { "python3" }
+              end,
+              format = require("iron.fts.common").bracketed_paste_python,
+              block_dividers = { "# %%", "#%%" },
+              -- Python 3.13+'s new console mangles pasted code; use the old one.
+              -- PAGER=cat prints help() into the console instead of opening a
+              -- pager you would have to move into the console to quit.
+              env = { PYTHON_BASIC_REPL = "1", PAGER = "cat" },
+            },
+          },
+          -- Console on the right, like R.nvim's.
+          repl_open_cmd = require("iron.view").split.vertical.botright(0.4),
+        },
+        -- Don't send the blank lines inside a selection: plain python3 takes a
+        -- blank line as the end of a block (e.g. midway through a function).
+        ignore_blank_lines = true,
+      })
+    end,
+  },
+
   -- https://github.com/tpope/vim-fugitive
   {
     "tpope/vim-fugitive"

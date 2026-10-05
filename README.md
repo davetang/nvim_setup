@@ -239,6 +239,13 @@ Notable things the config (`init.lua`) sets up — see the full keymap list with
   **httpgd**: `httpgd::hgd()` prints a URL; forward its port (`ssh -L`) as for
   the Markdown preview. Set up R with `make r` (see [R with R.nvim](#r-with-rnvim));
   `:checkhealth r` reports anything missing.
+- **Python console.** [iron.nvim](https://github.com/Vigemus/iron.nvim) runs
+  a Python console beside your script on R.nvim's keys, so one set of habits
+  works in both languages: `\rf` starts it, `\d` sends the line, `\pp` the
+  paragraph, `\ss` the selection and `\cc` a `# %%` cell. It runs IPython if
+  the project's environment has it (`uv add --dev ipython`), otherwise plain
+  `python3`. Start nvim with `uv run nvim`, or from an activated venv, so the
+  console and pyright both see the project's packages.
 - **Diagnostics.** Errors and warnings show inline (virtual text) at the end of
   the flagged line, so you can read them without moving onto each one; `<leader>d`
   opens the full message in a float and `]d` / `[d` jump between them. When a line
