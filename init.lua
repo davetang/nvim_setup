@@ -62,13 +62,37 @@ pcall(function()
   vim.cmd.colorscheme('solarized')
 end)
 
--- Yank to the system clipboard over SSH via OSC 52 (use "+y). OSC 52 *paste*
--- needs terminal support and may not work through screen.
+-- Yank to the clipboard of the machine you're sitting at over SSH via OSC 52
+-- (use "+y): the terminal there receives the text as an escape sequence.
 local osc52 = require('vim.ui.clipboard.osc52')
+-- Inside GNU screen ($STY), OSC 52 is dropped, so do what sendcb does: send
+-- it in 76-character pieces, each wrapped in ESC P ... ESC \, which screen
+-- passes to the outer terminal (one long piece would be dropped). sendcb
+-- itself can't be run from here: since 0.10, the Nvim process that runs
+-- external commands has no /dev/tty. nvim_ui_send writes through the UI
+-- process, which owns the terminal.
+local function screen_copy(clipboard)
+  return function(lines)
+    local data = vim.base64.encode(table.concat(lines, '\n'))
+    local parts = { '\027P\027]52;' .. clipboard .. ';\027\\' }
+    for i = 1, #data, 76 do
+      parts[#parts + 1] = '\027P' .. data:sub(i, i + 75) .. '\027\\'
+    end
+    parts[#parts + 1] = '\027P\007\027\\'
+    vim.api.nvim_ui_send(table.concat(parts))
+  end
+end
+-- Terminals refuse or ignore clipboard reads (screen drops them, so "+p used to
+-- wait 10 s and give up), so "+p pastes Neovim's own last yank. Paste from
+-- your own machine with the terminal's paste key in insert mode.
+local function paste()
+  return { vim.fn.split(vim.fn.getreg(''), '\n'), vim.fn.getregtype('') }
+end
 vim.g.clipboard = {
   name = 'OSC 52',
-  copy = { ['+'] = osc52.copy('+'), ['*'] = osc52.copy('*') },
-  paste = { ['+'] = osc52.paste('+'), ['*'] = osc52.paste('*') },
+  copy = vim.env.STY and { ['+'] = screen_copy('c'), ['*'] = screen_copy('p') }
+    or { ['+'] = osc52.copy('+'), ['*'] = osc52.copy('*') },
+  paste = { ['+'] = paste, ['*'] = paste },
 }
 -- With g:clipboard set above, Nvim's own OSC 52 detection (`:h g:termfeatures`)
 -- has nothing to decide, so turn it off. Its fallback query (XTGETTCAP for

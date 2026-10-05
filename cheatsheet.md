@@ -17,6 +17,16 @@ Open it anytime with `:Cheatsheet`.
 * `g` can be thought of as **go**; `gg` go to the top of the file or `gd` go to where a variable is defined
     * `gp` can also paste; see `:help g`
 
+## Clipboard (OSC 52, over SSH)
+
+| Key | Action |
+|-----|--------|
+| `"+y{motion}`, `"+yy`, `"+y` (visual) | Copy to the clipboard of the machine you're sitting at, also inside GNU screen |
+| `"+p` | Paste Neovim's own last yank (it can't read your local clipboard) |
+| Terminal's paste key, in insert mode | Paste from your local clipboard |
+
+Needs a terminal that accepts OSC 52 (kitty does; MobaXterm doesn't).
+
 ## Visual selection
 
 * A selection is just a **range** the next command acts on.

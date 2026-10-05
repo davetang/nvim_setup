@@ -263,7 +263,17 @@ Notable things the config (`init.lua`) sets up — see the full keymap list with
   you type and renders mermaid, KaTeX, emoji, and task lists. (First use needs
   the plugin's Node build to have succeeded — check `:Lazy` if the preview does
   nothing.)
-- **Clipboard.** OSC 52 — `"+y` copies to your *local* clipboard over SSH.
+- **Clipboard.** OSC 52 — `"+y` copies to your *local* clipboard over SSH,
+  including inside GNU screen, which drops plain OSC 52: there the sequence is
+  sent in small pieces screen passes through, as
+  [sendcb](https://github.com/davetang/sendcb) does. Your terminal must accept
+  OSC 52 (kitty does; MobaXterm doesn't; see sendcb's README for others).
+  `"+p` pastes Neovim's own last yank, not your local clipboard: terminals
+  refuse or ignore clipboard reads. Paste from your machine with the
+  terminal's paste key in insert mode. sendcb itself only works from a shell,
+  not from inside Neovim (`:w !sendcb` fails with "no terminal to send OSC 52
+  to": since Neovim 0.10, the process that runs external commands has no
+  `/dev/tty`).
 - **Undo.** Persistent across sessions (`undofile`).
 - **Ask about code (Ollama).** `<leader>cc` opens a chat with a local LLM via
   [codecompanion.nvim](https://github.com/olimorris/codecompanion.nvim); in
