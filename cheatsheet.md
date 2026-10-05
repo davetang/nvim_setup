@@ -162,7 +162,11 @@ Chat with a local **Ollama** model without leaving Neovim. The adapter connects
 to **`$OLLAMA_HOST`** (falling back to `http://localhost:11434`), so export that
 to point at your Ollama server before launching nvim. The default model is
 **`qwen2.5-coder:7b`** (override with **`$OLLAMA_MODEL`**); it must already be
-pulled on the server, and you can switch models live in the chat with `ga`.
+pulled on the server, and you can switch models live in the chat with `ga` or use:
+
+```
+:CodeCompanionChat adapter=openai model=gpt-4.1
+```
 
 | Key / Command | Action |
 |-----|--------|
