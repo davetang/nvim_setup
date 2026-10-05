@@ -235,6 +235,12 @@ vim.api.nvim_create_autocmd('TextChangedI', {
   callback = function()
     if vim.bo.buftype ~= '' then return end     -- skip prompt/special buffers
     if vim.fn.pumvisible() == 1 then return end  -- a menu is already open
+    -- Typing a character that matches nothing closes the menu but leaves
+    -- keyword completion running. Firing <C-n> then finds nothing, which fires
+    -- TextChangedI again, and so on in a loop that never lets the screen
+    -- redraw - what you type stays hidden until <Esc>. So stand aside until
+    -- that completion ends (a space or other non-word character ends it).
+    if vim.fn.complete_info({ 'mode' }).mode ~= '' then return end
     -- If an attached LSP already provides completion (e.g. Python, bash), let
     -- its autotrigger own the menu. Firing keyword <C-n> here too makes two
     -- sources fight over the single builtin menu, which resets the completion
