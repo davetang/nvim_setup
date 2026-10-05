@@ -66,12 +66,41 @@ Once something is selected:
 | `gr` | Find references |
 | `<leader>rn` | Rename the symbol everywhere |
 | `<leader>f` | Format the buffer |
-| `<leader>d` | Show the diagnostic under the cursor in a float |
-| `]d` / `[d` | Next / previous diagnostic |
 
-Servers: **pyright** + **ruff** (Python — types + lint/format), **bash-language-server** (sh/bash, uses **shellcheck** + **shfmt**), **make-language-server** (Makefiles).
+Servers: **pyright** + **ruff** (Python — types + lint/format), **bash-language-server** (sh/bash, uses **shellcheck** + **shfmt**), **PerlNavigator** (Perl), **make-language-server** (Makefiles), and for R, R.nvim's own server plus **Air** (format) + **Jarl** (lint, on save).
 
-Diagnostics show **inline** (virtual text) at the end of each flagged line; `<leader>d` opens the full message in a float, and `]d` / `[d` jump between them.
+## Diagnostics (errors, warnings, lint)
+
+The language servers report problems as you work: pyright and ruff in Python,
+**ShellCheck** (through bash-language-server) in shell scripts, Jarl in R, and
+so on. Each one shows **inline** at the end of its line, as a letter in the sign
+column, and as a count at the right of the status line (`E:1 W:3 I:4`).
+
+| Key / Command | Action |
+|-----|--------|
+| `]d` / `[d` | Next / previous diagnostic (`3]d` skips ahead three) |
+| `]D` / `[D` | Last / first diagnostic in the buffer |
+| `<leader>d` or `<C-w>d` | Show the full message under the cursor in a float |
+| `gra` | **Code actions** for the line under the cursor: fixes, or silence the rule |
+| `:lua vim.diagnostic.setloclist()` | All of this buffer's diagnostics in the location list; `:lopen` shows it, `<CR>` jumps |
+| `:lua vim.diagnostic.setqflist()` | The same for every open buffer, in the quickfix list (`:copen`) |
+| `:Telescope diagnostics bufnr=0` | Pick one with a preview (drop `bufnr=0` for every open buffer) |
+| `:lua vim.diagnostic.enable(false)` | Turn diagnostics off (`true` turns them back on) |
+
+`gra` shares its start with the `gr` (references) mapping above, so type it
+quickly: after a bare `gr`, Neovim waits a second for more keys before showing
+references.
+
+**ShellCheck.** The float ends with the rule's code, e.g. `[SC2155]`, and every
+rule has a page with examples and the fix at
+`https://www.shellcheck.net/wiki/SC2155`. `gra` offers **Disable ShellCheck rule
+… for this command**, which adds a `# shellcheck disable=SC2155` comment above
+the line, or **… for the entire file**, which puts it under the `#!` line. Some
+rules also offer an automatic fix.
+
+**Ask the LLM** (CodeCompanion, below). In the chat (`<leader>cc`), `#{diagnostics}`
+sends the file's diagnostics with each flagged line, and `#{buffer}` adds the
+whole file: `#{buffer} #{diagnostics} explain these and how to fix them`.
 
 ## Completion (native LSP + buffer words + file paths)
 
