@@ -21,6 +21,8 @@
 #   make pyright      Install the Python (Pyright) language server
 #   make makels       Install the Make/Autotools language server
 #   make perlnavigator Install the Perl (PerlNavigator) language server
+#   make yamlls       Install the YAML language server (R.nvim uses it for Quarto)
+#   make r            Install R via rig (if none) and R.nvim's R packages
 #   make check        Report the setup state (read-only; spot conflicts)
 #   make help         List available targets
 
@@ -37,7 +39,7 @@ ROOT := $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 # keep the build sequential even if invoked with -j.
 .NOTPARALLEL:
 
-.PHONY: help setup deps install nvim node tree-sitter lsp bashls pyright makels perlnavigator check
+.PHONY: help setup deps install nvim node tree-sitter lsp bashls pyright makels perlnavigator yamlls r check
 
 help:
 	@echo 'Usage: make <target>'
@@ -54,6 +56,8 @@ help:
 	@echo '  pyright      Install the Python (Pyright) language server'
 	@echo '  makels       Install the Make/Autotools language server'
 	@echo '  perlnavigator Install the Perl (PerlNavigator) language server'
+	@echo '  yamlls       Install the YAML language server (R.nvim uses it for Quarto)'
+	@echo '  r            Install R via rig (if none) and R.nvim'"'"'s R packages (not part of install)'
 	@echo '  check        Report the setup state (read-only)'
 	@echo '  help         Show this help'
 
@@ -86,7 +90,7 @@ tree-sitter:
 	$(ROOT)tree_sitter.sh
 
 # All language servers.
-lsp: bashls pyright makels perlnavigator
+lsp: bashls pyright makels perlnavigator yamlls
 
 # Individual language servers.
 bashls:
@@ -107,6 +111,19 @@ makels:
 # are not installed here.
 perlnavigator:
 	$(ROOT)perl_navigator.sh
+
+# YAML language server (npm-based). R.nvim starts it itself to complete Quarto
+# front matter and _quarto.yml, finding it on PATH, so it is also linked into
+# ~/bin.
+yamlls:
+	$(ROOT)yaml_language_server.sh
+
+# R for R.nvim: `rig add release` if rig has no R yet (never a second one),
+# then the R packages (knitr, rmarkdown, quarto, styler, httpgd) and checks that
+# R.nvim can build nvimcom and start R. Not part of `install`: rig itself comes
+# from outside this bundle (terminal_setup's `make rig`).
+r:
+	$(ROOT)r_setup.sh
 
 # Report the state of the setup (read-only): what PATH resolves to, where the
 # config symlinks point, and any legacy files. Handy when migrating.

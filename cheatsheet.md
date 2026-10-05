@@ -201,15 +201,32 @@ Inside the chat buffer:
 
 ## R (R.nvim)
 
-Uses the local leader (`\\`). A few common ones — see `:help R.nvim` for the full list:
+Uses the local leader (`\`). A few common ones — `:RMapsDesc` lists them all:
 
 | Key | Action |
 |-----|--------|
 | `\rf` | Start R in a terminal split |
+| `\rq` | Quit R |
 | `\l` | Send the current line to R |
+| `\d` | Send the current line and move down |
+| `\ss` | Send the selection (visual mode) |
 | `\pp` | Send the current paragraph |
 | `\aa` | Send / source the whole file |
-| `\rq` | Quit R |
+| `\cc` / `\cd` | Send the current chunk / and move to the next (Rmd, Quarto) |
+| `\kr` | Render the Rmd / Quarto document |
+| `\ro` | Toggle the Object Browser |
+| `\rh` | R help for the object under the cursor |
+| `\rv` | View the data frame under the cursor |
+| `\rs` / `\rp` | `summary()` / `print()` the object under the cursor |
+| `<M-->` | (insert mode) Type ` <- ` |
+| `<M-r>` | (insert mode, Rmd / Quarto) Insert a code chunk |
+| `<leader>f` | Format the file (Air) |
+| `:RFormat` | Format with styler (the selection, or the whole file; needs R running) |
+| `:w` | Save — also what makes Jarl lint the file |
+| `:checkhealth r` | Check R.nvim's dependencies |
+
+Plots: R has no display on a remote box, so run `httpgd::hgd()`, forward the
+port it prints (`ssh -L`), and open the URL locally.
 
 ## Plugins & health
 

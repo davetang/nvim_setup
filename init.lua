@@ -106,6 +106,30 @@ vim.lsp.config.ruff = {
 }
 vim.lsp.enable 'ruff'
 
+-- R gets three language servers, split the way Python's are. R.nvim starts
+-- its own (`r_ls`: completion, hover, go-to-definition, rename) when you open
+-- an R file - nothing to configure here, and the LspAttach autocmd below turns
+-- on its completion like any other server's. It neither formats nor lints, so:
+--   air  - Posit's R formatter (the R counterpart of ruff format), so
+--          <leader>f formats R files. https://github.com/posit-dev/air
+--   jarl - a fast R linter (the R counterpart of ruff check): diagnostics plus
+--          quick-fix code actions. It lints when you save (:w), not as you
+--          type or on open. https://github.com/etiennebacher/jarl
+-- Both are single binaries installed into ~/bin by terminal_setup.
+vim.lsp.config.air = {
+  cmd = { my_home .. '/bin/air', 'language-server' },
+  filetypes = { 'r' },
+  root_dir = lsp_root_dir
+}
+vim.lsp.enable 'air'
+
+vim.lsp.config.jarl = {
+  cmd = { my_home .. '/bin/jarl', 'server' },
+  filetypes = { 'r', 'rmd' },
+  root_dir = lsp_root_dir
+}
+vim.lsp.enable 'jarl'
+
 vim.lsp.config.bashls = {
   cmd = { my_home .. '/lib/bin/bash-language-server', 'start' },
   filetypes = { 'bash', 'sh' },
@@ -152,10 +176,26 @@ vim.opt.completeopt = { 'menuone', 'noselect' }
 -- Native LSP completion (Neovim 0.11+). Enable it per-buffer when a language
 -- server that supports completion attaches; autotrigger opens the menu as you
 -- type. This replaces coc.nvim.
+--
+-- autotrigger only fires on the server's own triggerCharacters - `.`, `$`,
+-- `(` and the like, never letters - so on its own, typing a name such as `pri`
+-- opens nothing, and the buffer-word fallback below stands aside wherever a
+-- server completes. Add the letters and `_` to each server's list first (it is
+-- read when completion is enabled), as :help lsp-autocompletion suggests, so
+-- the menu opens as you type names. Digits and punctuation are left out so
+-- numbers and operators don't pop a menu; while the menu is open, typing just
+-- narrows it.
+local identifier_chars = vim.split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_', '')
 vim.api.nvim_create_autocmd('LspAttach', {
   callback = function(args)
     local client = vim.lsp.get_client_by_id(args.data.client_id)
-    if client and client.server_capabilities.completionProvider then
+    local provider = client and client.server_capabilities.completionProvider
+    if provider then
+      local triggers = provider.triggerCharacters or {}
+      for _, c in ipairs(identifier_chars) do
+        if not vim.tbl_contains(triggers, c) then table.insert(triggers, c) end
+      end
+      provider.triggerCharacters = triggers
       vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = true })
     end
   end,
@@ -259,9 +299,12 @@ vim.keymap.set('n', '<leader>f', function() vim.lsp.buf.format({ async = true })
 -- instead of erroring - run `:Lazy sync` to switch to main, then restart.
 local ok_ts, ts = pcall(require, 'nvim-treesitter')
 if ok_ts and type(ts.install) == 'function' then
+  -- R.nvim also wants csv (to view data frames and matrices) and latex (with
+  -- rnoweb, for Rnoweb documents); yaml and markdown cover Rmd and Quarto.
   ts.install({
     "r", "rnoweb", "python", "bash", "groovy", "make", "perl", "sql", "yaml",
     "c", "lua", "vim", "vimdoc", "query", "markdown", "markdown_inline",
+    "csv", "latex",
   })
 end
 

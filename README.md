@@ -58,7 +58,7 @@ deps` on its own any time to vet a machine before installing.
 
 ## Companion repo: terminal_setup
 
-Four of the tools this config uses are installed by
+Several of the tools this config uses are installed by
 [`terminal_setup`](https://github.com/davetang/terminal_setup), the no-root
 installer for the general terminal toolchain, not by this bundle:
 
@@ -67,13 +67,16 @@ installer for the general terminal toolchain, not by this bundle:
 | ShellCheck | bash-language-server, for diagnostics |
 | shfmt | bash-language-server, for `<leader>f` formatting |
 | Ruff | the `ruff` language server (Python lint + format) |
+| Air | the `air` language server (R format) |
+| Jarl | the `jarl` language server (R lint) |
+| pandoc | rmarkdown, to render R Markdown from R.nvim |
 | GNU Screen 5 | 24-bit colour through a multiplexer (`termguicolors`) |
 
 It installs into the same `~/bin`, so there is nothing to configure here:
 
 ```sh
 git clone https://github.com/davetang/terminal_setup
-cd terminal_setup && make shellcheck shfmt ruff    # or make install for the lot
+cd terminal_setup && make shellcheck shfmt ruff air jarl pandoc    # or make install for the lot
 ```
 
 (fzf is not in that list: nothing in the Neovim config uses it. It is simply
@@ -83,7 +86,45 @@ available from terminal_setup now, whose `make setup` also wires up the
 Without them, `make install` still gives a working editor: pyright, bashls and
 the other servers start normally. What you lose is **lint and format** — bashls
 reports no ShellCheck diagnostics and cannot format, and the `ruff` server fails
-to start (visible in `:LspLog`) so `<leader>f` does nothing on Python.
+to start (visible in `:LspLog`) so `<leader>f` does nothing on Python. Likewise
+`air` and `jarl` fail to start, so R files are neither formatted nor linted.
+
+## R with R.nvim
+
+R is installed with [rig](https://github.com/r-lib/rig), which comes from
+outside this bundle: terminal_setup's `make rig` sets it up in user mode (no
+sudo, R and Rscript linked into `~/bin`). R.nvim needs **R 4.1 or newer** and,
+the first time you open an R file, compiles its R package `nvimcom` with R's
+`make` and C compiler. Then run **`make r`** (`r_setup.sh`), which:
+
+- installs R with `rig add release` if rig has **no R at all**. Once any R is
+  installed this step is skipped, so a rerun never adds a second R when a newer
+  release comes out; upgrading stays a deliberate `rig add release` of your own;
+- works from then on with rig's default R;
+- checks `make` and R's C compiler are on `PATH`, and that the `R` on `PATH`
+  (the one R.nvim starts) is the same R;
+- checks R's user library exists and is writable, creating it if needed, since
+  nvimcom and the packages below install there;
+- installs the R packages R.nvim uses: **knitr**, **rmarkdown** and **quarto** to
+  render R Markdown, Quarto and Rnoweb, **styler** for `:RFormat`, and
+  **httpgd** for plots over SSH (optional, so a failure there only warns). They
+  come from the repositories rig configured, so most arrive as prebuilt
+  binaries;
+- reports what document rendering still needs: pandoc (terminal_setup's `make
+  pandoc`) and the [Quarto CLI](https://quarto.org/docs/download/). Quarto also
+  lets R.nvim complete `#|` chunk options.
+
+It is idempotent: packages already installed are skipped. `FORCE=1` reinstalls
+(updates) them, `DRY_RUN=1` reports what it would install (or that it would
+add R first), and `R_VERSION=4.4` picks another installed R by name, version or
+alias, as `rig list` shows them. It exits non-zero only if R.nvim would not
+work. `make r` is not part of `make install`, because rig and R are not
+prerequisites of the editor.
+
+No R.nvim completion plugin is needed. R.nvim starts its own language server
+(`r_ls`) through Neovim's LSP client, and the native completion set up in
+`init.lua` picks it up. Don't add the CRAN `languageserver` package as well:
+R.nvim advises against two sources of R completion.
 
 ## What gets installed, and where
 
@@ -96,6 +137,7 @@ to start (visible in `:LspLog`) so `<leader>f` does nothing on Python.
 | pyright | `~/lib/` (npm) | via `~/lib/bin/` |
 | make-language-server | `~/lib/autotools-language-server/` (venv) | `make-language-server` |
 | PerlNavigator | `~/lib/` (npm) | via `~/lib/bin/` |
+| yaml-language-server | `~/lib/` (npm) | `yaml-language-server` (R.nvim finds it on `PATH`) |
 | Neovim config | symlinks in `~/.config/nvim/` → this bundle | — |
 
 ## Make targets
@@ -108,11 +150,13 @@ to start (visible in `:LspLog`) so `<leader>f` does nothing on Python.
 | `make nvim` | Install Neovim into `~/bin` |
 | `make node` | Install Node.js into `~/bin` |
 | `make tree-sitter` | Install the tree-sitter CLI from conda-forge into `~/bin` |
-| `make lsp` | All language servers (`bashls` + `pyright` + `makels` + `perlnavigator`) |
+| `make lsp` | All language servers (`bashls` + `pyright` + `makels` + `perlnavigator` + `yamlls`) |
 | `make bashls` | Bash language server |
 | `make pyright` | Python (Pyright) language server |
 | `make makels` | Make/Autotools language server |
 | `make perlnavigator` | Perl (PerlNavigator) language server |
+| `make yamlls` | YAML language server (R.nvim uses it for Quarto YAML) |
+| `make r` | R (via `rig add release`, if rig has none) and R.nvim's R packages (see [R with R.nvim](#r-with-rnvim)); not part of `install` |
 | `make check` | Report the setup state (read-only) — PATH, config symlinks, legacy files |
 | `make help` | List targets |
 
@@ -129,7 +173,8 @@ Set as environment variables, e.g. `NVIM_VERSION=0.11.3 make nvim`:
 |----------|--------|
 | `NVIM_VERSION`, `NODE_VERSION`, `TREE_SITTER_VERSION` | Pin a specific version instead of the default |
 | `FORCE=1` | Reinstall even if the versioned directory already exists |
-| `DRY_RUN=1` | Print what would happen without downloading (the binary installers) |
+| `DRY_RUN=1` | Print what would happen without downloading (the binary installers and `make r`) |
+| `R_VERSION` | Which rig-installed R `make r` sets up (default: rig's default R) |
 | `BIN_DIR` / `LIB_DIR` | Override the install prefixes (default `~/bin` / `~/lib`) |
 
 ## Notes
@@ -169,8 +214,9 @@ Notable things the config (`init.lua`) sets up — see the full keymap list with
   select, `<CR>` confirms. (coc.nvim was replaced by the built-in completion.)
 - **Language servers.** pyright + Ruff for Python (types + lint/format), bashls
   for shell (which picks up ShellCheck and shfmt from `~/bin`, installed by
-  terminal_setup), make-language-server for Makefiles, and PerlNavigator for
-  Perl. Each roots at the nearest `.git`, **falling back to the file's own
+  terminal_setup), make-language-server for Makefiles, PerlNavigator for
+  Perl, and for R, R.nvim's own server plus Air (format) and Jarl (lint). Each
+  roots at the nearest `.git`, **falling back to the file's own
   directory**, so cross-file features work even outside a repo — e.g. `gd` on a
   Bash function jumps to its definition in a sibling file (bashls also sets
   `includeAllWorkspaceSymbols` so it looks across the whole workspace, not only
@@ -180,6 +226,16 @@ Notable things the config (`init.lua`) sets up — see the full keymap list with
   `PATH` — those are CPAN modules (`Perl::Critic`, `Perl::Tidy`) the bundle
   does **not** install; add them no-root with `cpanm --local-lib` if you want
   lint/format.
+- **R.** [R.nvim](https://github.com/R-nvim/R.nvim) runs R in a terminal split
+  next to your script: `\rf` starts R, `\d` sends the line and moves down, and
+  `:RMapsDesc` lists every key (the local leader is `\`). Completion, hover and
+  `gd` come from R.nvim's own language server. Formatting and linting come from
+  **Air** (`<leader>f`) and **Jarl**, which lints when you **save**, not as you
+  type. R.nvim starts yaml-language-server itself to complete Quarto front
+  matter. R runs on the remote box with no display, so for plots use
+  **httpgd**: `httpgd::hgd()` prints a URL; forward its port (`ssh -L`) as for
+  the Markdown preview. Set up R with `make r` (see [R with R.nvim](#r-with-rnvim));
+  `:checkhealth r` reports anything missing.
 - **Diagnostics.** Errors and warnings show inline (virtual text) at the end of
   the flagged line, so you can read them without moving onto each one; `<leader>d`
   opens the full message in a float and `]d` / `[d` jump between them. When a line

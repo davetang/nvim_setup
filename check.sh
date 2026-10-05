@@ -29,10 +29,10 @@ case ":${PATH}:" in
 esac
 
 # --- tools: does PATH resolve to this bundle's ~/bin? -----------------------
-# shellcheck, shfmt, ruff, fzf and screen live there too, installed by
-# terminal_setup rather than by this bundle.
+# ShellCheck, shfmt, ruff, air, jarl, fzf and screen live there too, installed
+# by terminal_setup rather than by this bundle.
 hdr "Tools (what PATH resolves to)"
-for tool in nvim node npm npx tree-sitter shellcheck shfmt ruff fzf screen; do
+for tool in nvim node npm npx tree-sitter shellcheck shfmt ruff air jarl fzf screen; do
    resolved="$(command -v "${tool}" 2>/dev/null || true)"
    ours="${BIN_DIR}/${tool}"
    if [[ -z "${resolved}" ]]; then
@@ -96,6 +96,20 @@ hdr "Language servers"
 [[ -x "${LIB_DIR}/bin/bash-language-server" ]] && ok "bash-language-server present" || info "bash-language-server missing  (run: make bashls)"
 [[ -x "${LIB_DIR}/bin/pyright-langserver" ]]   && ok "pyright present"              || info "pyright missing  (run: make pyright)"
 [[ -e "${BIN_DIR}/make-language-server" ]]     && ok "make-language-server present" || info "make-language-server missing  (run: make makels)"
+[[ -x "${LIB_DIR}/bin/yaml-language-server" ]] && ok "yaml-language-server present" || info "yaml-language-server missing  (run: make yamlls)"
+
+# --- R: rig manages R; R.nvim starts the R on PATH ------------------------
+hdr "R (for R.nvim)"
+if command -v rig >/dev/null 2>&1; then
+   ok "rig -> $(command -v rig)"
+else
+   info "rig not found  (R.nvim needs an R; install rig, then: make r)"
+fi
+if command -v R >/dev/null 2>&1; then
+   ok "R -> $(command -v R)  (run: make r  to check it and install R.nvim's packages)"
+else
+   info "R not found on PATH  (R.nvim starts the R it finds there)"
+fi
 
 # --- legacy files -----------------------------------------------------------
 hdr "Legacy files"

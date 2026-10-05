@@ -133,6 +133,13 @@ return {
     opts = {},
   },
 
+  -- https://github.com/R-nvim/R.nvim
+  -- Run R in a terminal split and send code to it (<LocalLeader>rf starts R;
+  -- see :Cheatsheet and :RMapsDesc). Works with no setup() call. The first
+  -- time you open an R file it compiles its R package nvimcom (needs make and
+  -- a C compiler), and it starts its own language server, so completion needs
+  -- no extra plugin. Run r_setup.sh (make r) once for the R packages it renders
+  -- and formats with. `:checkhealth r` reports what is missing.
   {
     "R-nvim/R.nvim",
   },
