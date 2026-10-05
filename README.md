@@ -254,8 +254,8 @@ Notable things the config (`init.lua`) sets up — see the full keymap list with
 - **Markdown.** Two ways to view it. **In-buffer:**
   [render-markdown.nvim](https://github.com/MeanderingProgrammer/render-markdown.nvim)
   draws headings, fenced code, tables, and checkboxes right in the buffer as you
-  edit (the raw markup returns on the line you're on); it's automatic on markdown
-  files and `<leader>mr` toggles it. **In a browser:** `<leader>mp`
+  edit (the raw markup returns on the line you're on). It's off when a file
+  opens; `<leader>mr` turns it on and off. **In a browser:** `<leader>mp`
   (`:MarkdownPreviewToggle`) starts a live preview server on port **8090** and
   *prints its URL* rather than opening a browser — deliberately headless, since
   nvim runs on a remote box. Forward the port from your machine

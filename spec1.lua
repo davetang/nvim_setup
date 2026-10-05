@@ -122,15 +122,16 @@ return {
   -- https://github.com/MeanderingProgrammer/render-markdown.nvim
   -- Renders Markdown *in the buffer* (headings, fenced code, tables, checkboxes,
   -- callouts) with treesitter - a quick in-place look without the browser-based
-  -- markdown-preview. Auto-renders in normal mode; the raw markup reappears on
-  -- the line you're editing. The markdown/markdown_inline parsers (already
+  -- markdown-preview. Off when a file opens: <leader>mr (init.lua) turns it on
+  -- and off. While on, it renders in normal mode and the raw markup reappears
+  -- on the line you're editing. The markdown/markdown_inline parsers (already
   -- installed) do the parsing and nvim-web-devicons (already present via
   -- nvim-tree) supplies code-block language icons. Loads on markdown files only.
   {
     "MeanderingProgrammer/render-markdown.nvim",
     dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
     ft = { "markdown" },
-    opts = {},
+    opts = { enabled = false },
   },
 
   -- https://github.com/R-nvim/R.nvim

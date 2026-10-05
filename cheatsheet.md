@@ -186,7 +186,7 @@ Inside the **`:G` status window**:
 
 | Key / Command | Action |
 |-----|--------|
-| `<leader>mr` | Toggle **in-buffer** render (render-markdown.nvim; auto-on for markdown) |
+| `<leader>mr` | Toggle **in-buffer** render (render-markdown.nvim; off when a file opens) |
 | `<leader>mp` | Toggle live browser preview (`:MarkdownPreviewToggle`) |
 | `:MarkdownPreview` / `:MarkdownPreviewStop` | Start / stop the preview |
 | `:Toc` | Table of contents (vim-markdown) |

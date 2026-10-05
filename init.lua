@@ -402,9 +402,9 @@ vim.cmd([[
 ]])
 vim.g.mkdp_browserfunc = "MkdpNoopBrowser"
 vim.keymap.set('n', '<leader>mp', '<cmd>MarkdownPreviewToggle<cr>', { desc = 'Markdown preview' })
--- Toggle in-buffer Markdown rendering (render-markdown.nvim). Markdown files
--- render automatically; this flips back to raw markup when you want to edit or
--- copy it verbatim.
+-- Toggle in-buffer Markdown rendering (render-markdown.nvim). Files open as
+-- raw markup (enabled = false in spec1.lua); this turns rendering on for a
+-- formatted look, and off again.
 vim.keymap.set('n', '<leader>mr', '<cmd>RenderMarkdown toggle<cr>', { desc = 'Toggle in-buffer Markdown render' })
 
 -- CodeCompanion: ask about code without leaving Neovim, backed by Ollama. The
