@@ -171,7 +171,7 @@ pulled on the server, and you can switch models live in the chat with `ga` or us
 | Key / Command | Action |
 |-----|--------|
 | `<leader>cc` | Toggle the chat window — ask anything |
-| `<leader>ca` (visual) | Send the highlighted code into a chat, then ask about it |
+| `<leader>ca` (visual) | Add the `V` selection to the current chat (or start one); repeat to collect more, then type your question and send with `<CR>` |
 | `<leader>ci` | Inline assistant — type an instruction to write/edit code in place (visual = on the selection) |
 | `:CodeCompanionChat` | Open a chat buffer directly |
 | `:CodeCompanionActions` | Pick from the built-in prompt library |
