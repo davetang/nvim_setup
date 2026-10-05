@@ -229,18 +229,37 @@ end, { expr = true })
 
 -- Autocomplete: open the buffer-word menu automatically as you type, in any
 -- filetype - including ones with no language server (e.g. Markdown). Fires
--- <C-n> when there is a word character before the cursor and no menu is open;
+-- <C-n> when there is a word character before the cursor and no menu is open
+-- (or <C-x><C-f> when you are typing a file path, in every filetype);
 -- completeopt=noselect (above) keeps it from inserting anything on its own.
 vim.api.nvim_create_autocmd('TextChangedI', {
   callback = function()
     if vim.bo.buftype ~= '' then return end     -- skip prompt/special buffers
     if vim.fn.pumvisible() == 1 then return end  -- a menu is already open
-    -- Typing a character that matches nothing closes the menu but leaves
-    -- keyword completion running. Firing <C-n> then finds nothing, which fires
-    -- TextChangedI again, and so on in a loop that never lets the screen
-    -- redraw - what you type stays hidden until <Esc>. So stand aside until
-    -- that completion ends (a space or other non-word character ends it).
-    if vim.fn.complete_info({ 'mode' }).mode ~= '' then return end
+    local mode = vim.fn.complete_info({ 'mode' }).mode
+    -- File paths: when the text before the cursor is a path into a directory
+    -- that exists (/data/s, ~/proj/, ./R/, $HOME/), list that directory with
+    -- <C-x><C-f>, as coc.nvim's file source used to. This comes before the LSP
+    -- check below so it works in Python and shell files too: the LSP
+    -- autotrigger holds back while a menu is open. It also runs while another
+    -- completion is active, because a language server's reply can land after
+    -- the file menu opens and replace it; this brings the file menu back on
+    -- the next keystroke. Relative paths resolve against the current
+    -- directory, as <C-x><C-f> does; URLs are skipped.
+    local before = vim.fn.getline('.'):sub(1, vim.fn.col('.') - 1)
+    local path = before:match('[%w%._%-~$/]*/[%w%._%-]*$')
+    if path and mode ~= 'files' and not path:find('//', 1, true)
+        and vim.fn.isdirectory(vim.fn.expand(path:match('^(.*/)'))) == 1 then
+      vim.api.nvim_feedkeys(vim.keycode('<C-x><C-f>'), 'n', false)
+      return
+    end
+    -- Typing a character that matches nothing closes the menu but leaves the
+    -- completion running. Firing <C-n> (or <C-x><C-f>) then finds nothing,
+    -- which fires TextChangedI again, and so on in a loop that never lets the
+    -- screen redraw - what you type stays hidden until <Esc>. So stand aside
+    -- until that completion ends (a space or other non-word character ends
+    -- it). For paths, that is the mode ~= 'files' test above.
+    if mode ~= '' then return end
     -- If an attached LSP already provides completion (e.g. Python, bash), let
     -- its autotrigger own the menu. Firing keyword <C-n> here too makes two
     -- sources fight over the single builtin menu, which resets the completion

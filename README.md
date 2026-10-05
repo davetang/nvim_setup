@@ -210,8 +210,11 @@ Notable things the config (`init.lua`) sets up — see the full keymap list with
   under `~/bin`.
   (tmux carries truecolor with the usual `Tc`/`RGB` terminfo override.)
 - **Completion.** Native LSP completion (autotriggered) plus buffer-word
-  completion in every filetype — the menu pops up as you type. `<Tab>`/`<S-Tab>`
-  select, `<CR>` confirms. (coc.nvim was replaced by the built-in completion.)
+  completion in every filetype — the menu pops up as you type. Typing a path
+  into a directory that exists (`/data/s`, `~/proj/`) lists its files, as
+  coc.nvim's file source did; relative paths are taken from `:pwd`.
+  `<Tab>`/`<S-Tab>` select, `<CR>` confirms. (coc.nvim was replaced by the
+  built-in completion.)
 - **Language servers.** pyright + Ruff for Python (types + lint/format), bashls
   for shell (which picks up ShellCheck and shfmt from `~/bin`, installed by
   terminal_setup), make-language-server for Makefiles, PerlNavigator for

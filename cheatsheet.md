@@ -73,17 +73,21 @@ Servers: **pyright** + **ruff** (Python — types + lint/format), **bash-languag
 
 Diagnostics show **inline** (virtual text) at the end of each flagged line; `<leader>d` opens the full message in a float, and `]d` / `[d` jump between them.
 
-## Completion (native LSP + buffer words)
+## Completion (native LSP + buffer words + file paths)
 
 The menu pops up automatically as you type — from the language server in code,
-and from buffer words in any filetype (Markdown, plain text, …). Nothing is
-inserted until you pick an item.
+and from buffer words in any filetype (Markdown, plain text, …). Typing a path
+into a directory that exists (`/data/s`, `~/proj/`, `./R/`) lists that
+directory's files instead, in every filetype; relative paths are taken from
+Neovim's current directory (`:pwd`). Nothing is inserted until you pick an
+item; accepting a directory lists what is inside it.
 
 | Key | Action |
 |-----|--------|
 | `<Tab>` / `<S-Tab>` | Select next / previous item |
 | `<CR>` | Confirm the selected item (plain newline if none selected) |
 | `<C-e>` | Cancel the popup |
+| `<C-x><C-f>` | Complete a file path by hand |
 
 ## Fuzzy finding (Telescope)
 
