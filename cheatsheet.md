@@ -190,7 +190,8 @@ Inside the **`:G` status window**:
 | `<leader>mp` | Toggle live browser preview (`:MarkdownPreviewToggle`) |
 | `:MarkdownPreview` / `:MarkdownPreviewStop` | Start / stop the preview |
 | `:Toc` | Table of contents (vim-markdown) |
-| `zR` / `zM` | Open / close all header folds |
+| `zM` / `zR` | Close / open all header folds (files open with them all open) |
+| `za` | Toggle the fold under the cursor |
 | `]]` / `[[` | Next / previous header |
 
 Two ways to view Markdown: **render-markdown.nvim** draws it right in the buffer

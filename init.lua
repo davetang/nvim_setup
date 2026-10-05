@@ -49,6 +49,11 @@ vim.opt.mouse = ""
 -- keep undo history across sessions
 vim.opt.undofile = true
 
+-- open files with every fold open. vim-markdown folds Markdown by heading but
+-- leaves 'foldlevel' at 0, which closed every heading on open; the folds are
+-- still there for zc / za / zM. (Diff mode is unaffected: it resets the level.)
+vim.opt.foldlevelstart = 99
+
 -- Solarized (dark) via maxmx03/solarized.nvim - a modern Lua theme that needs
 -- true 24-bit colour. termguicolors is on unconditionally now that every
 -- workstation runs a truecolor-capable terminal and GNU screen 5.x (4.x

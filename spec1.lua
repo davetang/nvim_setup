@@ -101,8 +101,8 @@ return {
   },
 
   -- https://github.com/preservim/vim-markdown
-  -- Folding is enabled for headers by default.
-  -- `zR`: opens all folds
+  -- Folds by header. Files open with every fold open (foldlevelstart in
+  -- init.lua): `zM` closes all folds, `zR` opens them, `za` toggles one.
   { "preservim/vim-markdown" },
 
   -- https://github.com/iamcco/markdown-preview.nvim
