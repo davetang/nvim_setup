@@ -182,6 +182,27 @@ Inside the **`:G` status window**:
 | `<leader>hp` | Preview hunk |
 | `<leader>hs` / `<leader>hu` | Stage / undo hunk |
 
+## Diff mode (`nvim -d`)
+
+`nvim -d a b` opens the files side by side with the differences highlighted
+(three files work too). `<C-w>w` moves between them.
+
+| Key / Command | Action |
+|-----|--------|
+| `]c` / `[c` | Next / previous change (gitgutter hands these back to diff mode) |
+| `do` | **Diff obtain**: pull the other window's version of this hunk into this one (`:diffget`) |
+| `dp` | **Diff put**: push this hunk into the other window (`:diffput`) |
+| `:'<,'>diffget` / `:'<,'>diffput` | The same for a visual selection (`do`/`dp` don't work in visual mode, where `d` deletes) |
+| `:diffget 3` / `:diffget foo` | With 3+ files, say which buffer: by buffer number or part of its name |
+| `:diffupdate` | Re-scan when the highlighting gets out of step after edits |
+| `zo` / `zc` / `zR` | Open / close / open all folds (unchanged lines are folded away) |
+| `:diffthis` / `:diffoff!` | Add the current window to the diff / leave diff mode in every window |
+| `:wqa` / `:qa!` | Save and quit every file / quit without saving |
+
+`dp` changes the other buffer without saving it, hence `:wqa`. For a merge
+conflict, Fugitive's `:Gvdiffsplit!` opens a three-way diff where `d2o` /
+`d3o` take the hunk from "ours" / "theirs".
+
 ## Markdown
 
 | Key / Command | Action |
