@@ -210,6 +210,12 @@ return {
       strategies = {
         chat = { adapter = "ollama" },
         inline = { adapter = "ollama" },
+        -- On by default since v19.22.0: every chat prompt snapshots the repo
+        -- with `git add --all` into a private index (.git/codecompanion-index),
+        -- which blocks Neovim and is slow with many untracked/generated files.
+        -- Keep this inside `strategies`: the plugin replaces `interactions`
+        -- with `strategies` when both are set.
+        code_review = { enabled = false },
       },
       -- Pin the default model. Note $OLLAMA_MODEL is NOT a standard Ollama
       -- variable (Ollama defines OLLAMA_HOST and OLLAMA_MODELS - the latter is
