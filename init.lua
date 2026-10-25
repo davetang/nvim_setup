@@ -88,10 +88,28 @@ local function screen_copy(clipboard)
   end
 end
 -- Terminals refuse or ignore clipboard reads (screen drops them, so "+p used to
--- wait 10 s and give up), so "+p pastes Neovim's own last yank. Paste from
--- your own machine with the terminal's paste key in insert mode.
+-- wait 10 s and give up), so "+p pastes Neovim's own last yank, recorded here.
+-- Paste from your own machine with the terminal's paste key in insert mode.
+-- (Reading the unnamed register instead fails after "+y: it then points at
+-- "+", which Nvim empties before calling this function.)
+local last_yank = { {}, 'v' }
+vim.api.nvim_create_autocmd('TextYankPost', {
+  callback = function()
+    if vim.v.event.operator == 'y' then
+      -- A blockwise regtype carries its width ("\0223"), which Nvim rejects
+      -- from a provider; it works the width out itself. It also drops a final
+      -- '' from a linewise or blockwise paste as the trailing newline.
+      local regtype = vim.v.event.regtype:sub(1, 1)
+      local lines = vim.v.event.regcontents
+      if regtype ~= 'v' then
+        lines = vim.list_extend(vim.deepcopy(lines), { '' })
+      end
+      last_yank = { lines, regtype }
+    end
+  end,
+})
 local function paste()
-  return { vim.fn.split(vim.fn.getreg(''), '\n'), vim.fn.getregtype('') }
+  return last_yank
 end
 vim.g.clipboard = {
   name = 'OSC 52',
